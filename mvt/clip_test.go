@@ -32,7 +32,7 @@ func TestClip(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	tileid := m.TileID{1, 8, 5}
+	tileid := m.TileID{X: 1, Y: 8, Z: 5}
 	about_tile_feature := ClipTile(feature, tileid)
 	about_tile_feature.Properties = map[string]interface{}{"COLORKEY": "purple", "TILEID": m.Tilestr(tileid)}
 	fmt.Printf("About Tile: %+v Feature: %+v\n", tileid, about_tile_feature)

@@ -29,7 +29,7 @@ var point_geometry = []uint32{0x9, 0xbb8, 0xb28}
 var multipoint_geometry = []uint32{0x11, 0xbb8, 0xb28, 0x378, 0x478}
 
 func TestPolygonFloat(t *testing.T) {
-	cur := NewCursorExtent(m.TileID{0, 0, 0}, 4096)
+	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
 	cur.MakePolygonFloat(polygon.GeometryData.Polygon)
 
 	for i := range cur.Geometry {
@@ -40,7 +40,7 @@ func TestPolygonFloat(t *testing.T) {
 }
 
 func TestMultiPolygonFloat(t *testing.T) {
-	cur := NewCursorExtent(m.TileID{0, 0, 0}, 4096)
+	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
 	cur.MakeMultiPolygonFloat(multipolygon.GeometryData.MultiPolygon)
 
 	for i := range cur.Geometry {
@@ -51,7 +51,7 @@ func TestMultiPolygonFloat(t *testing.T) {
 }
 
 func TestLineStringFloat(t *testing.T) {
-	cur := NewCursorExtent(m.TileID{0, 0, 0}, 4096)
+	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
 	cur.MakeLineFloat(linestring.GeometryData.LineString)
 
 	for i := range cur.Geometry {
@@ -62,7 +62,7 @@ func TestLineStringFloat(t *testing.T) {
 }
 
 func TestMultiLineStringFloat(t *testing.T) {
-	cur := NewCursorExtent(m.TileID{0, 0, 0}, 4096)
+	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
 	cur.MakeMultiLineFloat(multilinestring.GeometryData.MultiLineString)
 
 	for i := range cur.Geometry {
@@ -73,7 +73,7 @@ func TestMultiLineStringFloat(t *testing.T) {
 }
 
 func TestPointFloat(t *testing.T) {
-	cur := NewCursorExtent(m.TileID{0, 0, 0}, 4096)
+	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
 	cur.MakePointFloat(point.GeometryData.Point)
 
 	for i := range cur.Geometry {
@@ -84,7 +84,7 @@ func TestPointFloat(t *testing.T) {
 }
 
 func TestMultiPointFloat(t *testing.T) {
-	cur := NewCursorExtent(m.TileID{0, 0, 0}, 4096)
+	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
 	cur.MakeMultiPointFloat(multipoint.GeometryData.MultiPoint)
 
 	for i := range cur.Geometry {

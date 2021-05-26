@@ -296,8 +296,6 @@ func PointClipAboutZoom(feature *geom.Feature, zoom int) map[m.TileID]*geom.Feat
 		checktileid := m.Tile(feature.GeometryData.Point[0], feature.GeometryData.Point[1], zoom)
 		feature.Properties["TILEID"] = checktileid
 		return map[m.TileID]*geom.Feature{checktileid: feature}
-
-		return map[m.TileID]*geom.Feature{}
 	} else if feature.GeometryData.Type == "MultiPoint" {
 		newpoints := map[m.TileID][][]float64{}
 		for _, pt := range feature.GeometryData.MultiPoint {
@@ -451,7 +449,7 @@ func GetFirstZoom(bb m.Extrema) (int, m.TileID) {
 			return i - 1, m.Tile(corners[0][0], corners[0][1], i-1)
 		}
 	}
-	return 30, m.TileID{0, 0, 30}
+	return 30, m.TileID{X: 0, Y: 0, Z: 30}
 }
 
 func DeltaBounds(bds1, bds2 m.Extrema) bool {

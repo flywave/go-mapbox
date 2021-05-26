@@ -11,7 +11,7 @@ import (
 )
 
 var bytevals, _ = ioutil.ReadFile("../../tests/701_1635_12.pbf")
-var tileid = m.TileID{701, 1635, 12}
+var tileid = m.TileID{X: 701, Y: 1635, Z: 12}
 
 func TestReads(t *testing.T) {
 	feats1, _ := ReadTile(bytevals, tileid)

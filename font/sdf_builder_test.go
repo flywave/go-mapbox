@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/golang/freetype/truetype"
@@ -32,7 +33,7 @@ func TestSDFBuilder_Glyph(t *testing.T) {
 	for i := 0; i < 255; i++ {
 		g := builder.Glyph(rune(i))
 		if g != nil {
-			fmt.Printf("%s %d\n", string(*g.Id), *g.Top)
+			fmt.Printf("%s %d\n", strconv.Itoa(int(*g.Id)), *g.Top)
 			img := DrawGlyph(g, true)
 			SavePNG(fmt.Sprintf("../../tests/data/NotoSans/%d.png", i), img)
 		}

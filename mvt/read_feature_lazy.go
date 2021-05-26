@@ -26,7 +26,6 @@ func DeltaDim(num int) float64 {
 	} else {
 		return float64(num / 2)
 	}
-	return float64(0)
 }
 
 func SignedArea(ring [][]float64) float64 {
