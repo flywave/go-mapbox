@@ -1,8 +1,6 @@
-package mbstyle
+package style
 
-import (
-	"github.com/flywave/flywave-server/formats/mapbox"
-)
+import "github.com/flywave/go-mapbox"
 
 const (
 	CoalesceExpression              = 0

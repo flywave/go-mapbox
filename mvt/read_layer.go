@@ -5,13 +5,13 @@ import (
 )
 
 type Layer struct {
-	Name            string        // name of laeyr
-	Extent          int           // size of extent
-	Version         int           // the correct version of a given layer
-	Keys            []string      // size of keys
-	Values          []interface{} // size of values
-	Number_Features int           // the number of features
-	features        []int         // size of features
+	Name            string
+	Extent          int
+	Version         int
+	Keys            []string
+	Values          []interface{}
+	Number_Features int
+	features        []int
 	StartPos        int
 	EndPos          int
 	featurePosition int
