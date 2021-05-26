@@ -1,0 +1,158 @@
+package raster
+
+import (
+	"errors"
+	"image"
+	"image/color"
+	"image/png"
+	"math"
+	"os"
+)
+
+const (
+	DEM_ENCODING_MAPBOX    = 0
+	DEM_ENCODING_TERRARIUM = 1
+)
+
+var (
+	UNPACK_MAPBOX    = [4]float64{6553.6, 25.6, 0.1, 10000.0}
+	UNPACK_TERRARIUM = [4]float64{256.0, 1.0, 1.0 / 256.0, 32768.0}
+)
+
+type DEMData struct {
+	Encoding int
+	Dim      int
+	Stride   int
+	Data     [][4]byte
+}
+
+func LoadDEMData(path string, encoding int) (*DEMData, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	m, _, err := image.Decode(f)
+	if err != nil {
+		return nil, err
+	}
+	rect := m.Bounds()
+	if m.ColorModel() != color.NRGBAModel || rect.Dx() != rect.Dy() {
+		return nil, errors.New("image format error!")
+	}
+
+	data := make([][4]byte, rect.Dx()*rect.Dy())
+
+	for x := 0; x < rect.Dx(); x++ {
+		for y := 0; y < rect.Dy(); y++ {
+			rgba := m.At(x, y).(color.NRGBA)
+			data[x*rect.Dx()+y] = [4]byte{rgba.R, rgba.G, rgba.B, rgba.A}
+		}
+	}
+	return NewDEMData(data, encoding), nil
+}
+
+func NewDEMData(data [][4]byte, encoding int) *DEMData {
+	if len(data)%2 != 0 {
+		return nil
+	}
+	dim := int(math.Sqrt(float64(len(data))))
+	stride := dim + 2
+	img := make([][4]byte, stride*stride)
+	for r := 0; r < dim; r++ {
+		for c := 0; c < dim; c++ {
+			img[(r+1)*stride+c+1] = data[r*dim+c]
+		}
+	}
+
+	for x := 0; x < dim; x++ {
+		rowOffset := stride * (x + 1)
+		img[rowOffset] = img[rowOffset+1]
+		img[rowOffset+dim+1] = img[rowOffset+dim]
+	}
+
+	for r := 0; r < stride; r++ {
+		img[r] = img[stride+r]
+		img[(stride*(dim+1))+r] = img[stride*dim+r]
+	}
+
+	return &DEMData{Encoding: encoding, Dim: dim, Stride: stride, Data: img}
+}
+
+func (d *DEMData) idx(x int, y int) int {
+	return (y+1)*d.Stride + (x + 1)
+}
+
+func (d *DEMData) BackfillBorder(data DEMData, dx int, dy int) {
+	if d.Dim == data.Dim {
+		return
+	}
+	xMin := dx * d.Dim
+	xMax := dx*d.Dim + d.Dim
+	yMin := dy * d.Dim
+	yMax := dy*d.Dim + d.Dim
+
+	if dx == -1 {
+		xMin = xMax - 1
+	} else if dx == 1 {
+		xMax = xMin + 1
+	}
+
+	if dy == -1 {
+		yMin = yMax - 1
+	} else if dy == 1 {
+		yMax = yMin + 1
+	}
+
+	ox := -dx * d.Dim
+	oy := -dy * d.Dim
+
+	for y := yMin; y < yMax; y++ {
+		for x := xMin; x < xMax; x++ {
+			d.Data[d.idx(x, y)] = data.Data[d.idx(x+ox, y+oy)]
+		}
+	}
+}
+
+func (d *DEMData) Get(x int, y int) float64 {
+	unpack := d.getUnpackVector()
+	value := d.Data[d.idx(x, y)]
+	return float64(value[0])*unpack[0] + float64(value[1])*unpack[1] + float64(value[2])*unpack[2] - unpack[3]
+}
+
+func (d *DEMData) GetData() []float64 {
+	ret := make([]float64, d.Dim*d.Dim)
+	for x := 0; x < d.Dim; x++ {
+		for y := 0; y < d.Dim; y++ {
+			ret[x*d.Dim+y] = d.Get(x, y)
+		}
+	}
+	return ret
+}
+
+func (d *DEMData) getUnpackVector() [4]float64 {
+	if d.Encoding == 0 {
+		return UNPACK_MAPBOX
+	}
+	return UNPACK_TERRARIUM
+}
+
+func (d *DEMData) Save(path string) error {
+	img := image.NewNRGBA(image.Rect(0, 0, d.Dim, d.Dim))
+	for r := 0; r < d.Dim; r++ {
+		for c := 0; c < d.Dim; c++ {
+			img.SetNRGBA(c, r, color.NRGBA{
+				R: d.Data[d.idx(r, c)][0],
+				G: d.Data[d.idx(r, c)][1],
+				B: d.Data[d.idx(r, c)][2],
+				A: d.Data[d.idx(r, c)][3],
+			})
+		}
+	}
+	f, _ := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0600)
+	defer f.Close()
+
+	if err := png.Encode(f, img); err != nil {
+		return err
+	}
+	return nil
+}
