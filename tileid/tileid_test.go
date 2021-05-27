@@ -68,7 +68,7 @@ func Test_Strtile(t *testing.T) {
 func Test_Children(t *testing.T) {
 	tileid := TileID{0, 0, 0}
 
-	expected_children := []TileID{TileID{0, 0, 1}, TileID{1, 0, 1}, TileID{1, 1, 1}, TileID{0, 1, 1}}
+	expected_children := []TileID{{0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1}}
 	children := Children(tileid)
 
 	for i := range children {
