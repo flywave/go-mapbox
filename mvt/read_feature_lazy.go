@@ -4,9 +4,9 @@ import (
 	"errors"
 	"math"
 
-	"github.com/flywave/go-geom"
 	m "github.com/flywave/go-mapbox/tileid"
 
+	"github.com/flywave/go-geom"
 	"github.com/flywave/go-pbf"
 )
 

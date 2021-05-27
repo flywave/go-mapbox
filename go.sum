@@ -5,6 +5,8 @@ github.com/flywave/go-geom v0.0.0-20210526012220-be9d5453d578 h1:YpRP2ZkO5FQsThK
 github.com/flywave/go-geom v0.0.0-20210526012220-be9d5453d578/go.mod h1:whIEyVfpaBVcYiDCnnc4IJg5CI5KpLC3quy95YJ1W9I=
 github.com/flywave/go-pbf v0.0.0-20210527055707-773ea3424ceb h1:yEceoAAnAdwaCqR/IVl0NGTi+prDiHnGydGojpTJmVU=
 github.com/flywave/go-pbf v0.0.0-20210527055707-773ea3424ceb/go.mod h1:cfHFEG24/0hT2xCSLJb8rT/2WE8ieeIrbOJq1sql/fg=
+github.com/flywave/go-pbf v0.0.0-20210527131326-8e27970d0076 h1:qc6YFOhN7oL2W9gsepevsncIIspFL5mlouJW9onOUvo=
+github.com/flywave/go-pbf v0.0.0-20210527131326-8e27970d0076/go.mod h1:cfHFEG24/0hT2xCSLJb8rT/2WE8ieeIrbOJq1sql/fg=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/go-courier/ptr v1.0.1/go.mod h1:oBnPUcGul7WHILdX53pcWGzGUUJ4GoZ/YaDTnS2Fi/M=
 github.com/go-courier/reflectx v1.3.4 h1:H5GD34mL2MlVU3cnrg/HiUhBfO+Ztorm4PHQFOvH60M=

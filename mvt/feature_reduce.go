@@ -1,8 +1,9 @@
 package mvt
 
 import (
-	"github.com/flywave/go-geom"
 	m "github.com/flywave/go-mapbox/tileid"
+
+	"github.com/flywave/go-geom"
 )
 
 var default_steps = 8

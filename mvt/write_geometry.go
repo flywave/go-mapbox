@@ -12,8 +12,8 @@ type Cursor struct {
 	Geometry   []uint32
 	LastPoint  []int32
 	Bounds     m.Extrema
-	DeltaX     float64 // delta between bounds
-	DeltaY     float64 // delta between bounds
+	DeltaX     float64
+	DeltaY     float64
 	Count      uint32
 	Extent     int32
 	Bds        m.Extrema
@@ -183,8 +183,6 @@ func assert_winding_order(coord [][]int32, exp_orient string) [][]int32 {
 	} else {
 		return coord
 	}
-	return coord
-
 }
 
 func (cur *Cursor) AssertConvert(coord [][]float64, exp_orient string) {

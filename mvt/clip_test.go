@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/flywave/go-geom"
-
 	m "github.com/flywave/go-mapbox/tileid"
+
+	"github.com/flywave/go-geom"
 )
 
 func exists(path string) (bool, error) {

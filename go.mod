@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/flywave/go-geom v0.0.0-20210526012220-be9d5453d578 // indirect
-	github.com/flywave/go-pbf v0.0.0-20210527055707-773ea3424ceb // indirect
+	github.com/flywave/go-pbf v0.0.0-20210527131326-8e27970d0076 // indirect
 	github.com/go-courier/reflectx v1.3.4 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

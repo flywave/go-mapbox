@@ -4,8 +4,9 @@ import (
 	"errors"
 	"math"
 
-	"github.com/flywave/go-geom"
 	m "github.com/flywave/go-mapbox/tileid"
+
+	"github.com/flywave/go-geom"
 	"github.com/flywave/go-pbf"
 )
 
@@ -90,7 +91,6 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 					for key == proto.Layer.Features && val == pbf.Bytes {
 						features = append(features, tile.Buf.Pos)
 						feat_size := tile.Buf.ReadVarint()
-
 						tile.Buf.Pos += feat_size
 						key, val = tile.Buf.ReadTag()
 					}
@@ -126,7 +126,6 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 					if key == proto.Layer.Version && val == pbf.Varint {
 						_ = int(tile.Buf.ReadVarint())
 						key, val = tile.Buf.ReadTag()
-
 					}
 				}
 				if extent == 0 {

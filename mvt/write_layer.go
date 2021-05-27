@@ -21,6 +21,9 @@ type LayerWrite struct {
 	ReduceBool bool
 	Buf        *pbf.Writer
 	Proto      Proto
+	Features   []byte
+	Keys       []byte
+	Values     []byte
 }
 
 type Config struct {
@@ -73,24 +76,22 @@ func NewLayerConfig(config Config) LayerWrite {
 	}
 }
 
-/**
-layer.Keys_Bytes = append(layer.Keys_Bytes, 26)
-	layer.Keys_Bytes = append(layer.Keys_Bytes, pbf.EncodeVarint(uint64(len(key)))...)
-	layer.Keys_Bytes = append(layer.Keys_Bytes, []byte(key)...)
+func (layer *LayerWrite) AddKey(key string) uint32 {
+	fwriter := pbf.NewWriter()
+	fwriter.WriteString(layer.Proto.Layer.Keys, key)
+	layer.Keys = append(layer.Keys, fwriter.Finish()...)
 	myint := uint32(len(layer.Keys_Map))
 	layer.Keys_Map[key] = myint
-	**/
-func (layer *LayerWrite) AddKey(key string) uint32 {
-	return 0
+	return myint
 }
 
-/**
-layer.Values_Bytes = append(layer.Values_Bytes, WriteValue(value)...)
+func (layer *LayerWrite) AddValue(value interface{}) uint32 {
+	fwriter := pbf.NewWriter()
+	fwriter.WriteValue(layer.Proto.Layer.Values, value)
+	layer.Values = append(layer.Values, fwriter.Finish()...)
 	myint := uint32(len(layer.Values_Map))
 	layer.Values_Map[value] = myint
-	**/
-func (layer *LayerWrite) AddValue(value interface{}) uint32 {
-	return 0
+	return myint
 }
 
 func (layer *LayerWrite) GetTags(properties map[string]interface{}) []uint32 {
@@ -119,74 +120,62 @@ func (layer *LayerWrite) RefreshCursor() {
 	layer.Cursor.Bds = startbds
 }
 
-/**
-defer func() {
-		if recover() != nil {
-			err = errors.New("Error in WriteLayer().")
-		}
-	}()
-
-	mylayer := NewLayerConfig(config)
+func WriteLayer(features []*geom.Feature, config Config) []byte {
+	layer := NewLayerConfig(config)
 	if config.ExtentBool {
-		mylayer.Cursor.ExtentBool = true
+		layer.Cursor.ExtentBool = true
 	}
 
 	for _, feat := range features {
-		mylayer.AddFeature(feat)
+		layer.AddFeature(feat)
+	}
+	if len(layer.Name) > 0 {
+		layer.Buf.WriteString(layer.Proto.Layer.Name, layer.Name)
+	}
+	if len(layer.Features) > 0 {
+		layer.Buf.WriteRaw(layer.Features)
+	}
+	if len(layer.Keys) > 0 {
+		layer.Buf.WriteRaw(layer.Keys)
+	}
+	if len(layer.Values) > 0 {
+		layer.Buf.WriteRaw(layer.Values)
 	}
 
-	if len(mylayer.Name) > 0 {
-		total_bytes = append(total_bytes, 10)
-		total_bytes = append(total_bytes, pbf.EncodeVarint(uint64(len(mylayer.Name)))...)
-		total_bytes = append(total_bytes, []byte(mylayer.Name)...)
-	}
+	layer.Buf.WriteUInt64(layer.Proto.Layer.Extent, uint64(layer.Extent))
+	layer.Buf.WriteVarint(layer.Proto.Layer.Version, int(layer.Version))
 
-	total_bytes = append(total_bytes, mylayer.Features...)
-	total_bytes = append(total_bytes, mylayer.Keys_Bytes...)
-	total_bytes = append(total_bytes, mylayer.Values_Bytes...)
+	total_bytes := layer.Buf.Finish()
 
-	if true {
-		total_bytes = append(total_bytes, 40)
-		total_bytes = append(total_bytes, pbf.EncodeVarint(uint64(mylayer.Extent))...)
-	}
-
-	total_bytes = append(total_bytes, 120)
-	total_bytes = append(total_bytes, byte(mylayer.Version))
-
-	beg := append([]byte{26}, pbf.EncodeVarint(uint64(len(total_bytes)))...)
-	total_bytes = append(beg, total_bytes...)
-	return total_bytes, err
-	**/
-
-func WriteLayer(features []*geom.Feature, config Config) (total_bytes []byte, err error) {
-	return nil, nil
+	tag := tagAndType(layer.Proto.Layers, pbf.Bytes)
+	beg := append([]byte{tag}, pbf.EncodeVarint(uint64(len(total_bytes)))...)
+	return append(beg, total_bytes...)
 }
 
-/**
-	total_bytes := []byte{}
-
-	if len(mylayer.Name) > 0 {
-		total_bytes = append(total_bytes, 10)
-		total_bytes = append(total_bytes, pbf.EncodeVarint(uint64(len(mylayer.Name)))...)
-		total_bytes = append(total_bytes, []byte(mylayer.Name)...)
+func (layer *LayerWrite) Flush() []byte {
+	if len(layer.Name) > 0 {
+		layer.Buf.WriteString(layer.Proto.Layer.Name, layer.Name)
+	}
+	if len(layer.Features) > 0 {
+		layer.Buf.WriteRaw(layer.Features)
+	}
+	if len(layer.Keys) > 0 {
+		layer.Buf.WriteRaw(layer.Keys)
+	}
+	if len(layer.Values) > 0 {
+		layer.Buf.WriteRaw(layer.Values)
 	}
 
-	total_bytes = append(total_bytes, mylayer.Features...)
-	total_bytes = append(total_bytes, mylayer.Keys_Bytes...)
-	total_bytes = append(total_bytes, mylayer.Values_Bytes...)
+	layer.Buf.WriteUInt64(layer.Proto.Layer.Extent, uint64(layer.Extent))
+	layer.Buf.WriteVarint(layer.Proto.Layer.Version, int(layer.Version))
 
-	if true {
-		total_bytes = append(total_bytes, 40)
-		total_bytes = append(total_bytes, pbf.EncodeVarint(uint64(mylayer.Extent))...)
-	}
+	total_bytes := layer.Buf.Finish()
 
-	total_bytes = append(total_bytes, 120)
-	total_bytes = append(total_bytes, byte(mylayer.Version))
-
-	beg := append([]byte{26}, pbf.EncodeVarint(uint64(len(total_bytes)))...)
+	tag := tagAndType(layer.Proto.Layers, pbf.Bytes)
+	beg := append([]byte{tag}, pbf.EncodeVarint(uint64(len(total_bytes)))...)
 	return append(beg, total_bytes...)
-**/
+}
 
-func (mylayer *LayerWrite) Flush() []byte {
-	return nil
+func tagAndType(t pbf.TagType, w pbf.WireType) byte {
+	return byte((uint32(t) << 3) | uint32(w))
 }
