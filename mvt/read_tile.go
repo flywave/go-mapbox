@@ -6,33 +6,37 @@ import (
 
 	"github.com/flywave/go-geom"
 	m "github.com/flywave/go-mapbox/tileid"
-	"github.com/murphy214/pbf"
+	"github.com/flywave/go-pbf"
 )
 
 type Tile struct {
 	LayerMap map[string]*Layer
-	Buf      *pbf.PBF
+	Buf      *pbf.Reader
 	TileID   m.TileID
 	Layers   []string
+	Proto    Proto
 }
 
-func NewTile(bytevals []byte) (tile *Tile, err error) {
+func NewTile(bytevals []byte, pt ProtoType) (tile *Tile, err error) {
 	defer func() {
 		if recover() != nil {
 			err = errors.New("Error in NewTile.")
 		}
 	}()
 
+	proto := getProto(pt)
+
 	tile = &Tile{
 		LayerMap: map[string]*Layer{},
-		Buf:      &pbf.PBF{Pbf: bytevals, Length: len(bytevals)},
+		Buf:      &pbf.Reader{Pbf: bytevals, Length: len(bytevals)},
+		Proto:    proto,
 	}
 	for tile.Buf.Pos < tile.Buf.Length {
-		key, val := tile.Buf.ReadKey()
-		if key == 3 && val == 2 {
+		key, val := tile.Buf.ReadTag()
+		if key == proto.Layers && val == pbf.Bytes {
 			size := tile.Buf.ReadVarint()
 			if size != 0 {
-				tile.NewLayer(tile.Buf.Pos + size)
+				tile.NewLayer(tile.Buf.Pos+size, pt)
 			}
 
 		}
@@ -51,7 +55,7 @@ func (tile *Tile) Render() []byte {
 	return totalbs
 }
 
-func ReadTile(bytevals []byte, tileid m.TileID) (totalfeautures []*geom.Feature, err error) {
+func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []*geom.Feature, err error) {
 
 	defer func() {
 		if recover() != nil {
@@ -59,14 +63,16 @@ func ReadTile(bytevals []byte, tileid m.TileID) (totalfeautures []*geom.Feature,
 		}
 	}()
 
+	proto := getProto(pt)
+
 	tile := &Tile{
-		Buf:    pbf.NewPBF(bytevals),
+		Buf:    pbf.NewReader(bytevals),
 		TileID: tileid,
 	}
 	totalfeautures = []*geom.Feature{}
 	for tile.Buf.Pos < tile.Buf.Length {
-		key, val := tile.Buf.ReadKey()
-		if key == 3 && val == 2 {
+		key, val := tile.Buf.ReadTag()
+		if key == proto.Layers && val == 2 {
 			sizex := tile.Buf.ReadVarint()
 			endpos := tile.Buf.Pos + sizex
 			var extent, number_features int
@@ -75,51 +81,51 @@ func ReadTile(bytevals []byte, tileid m.TileID) (totalfeautures []*geom.Feature,
 			var keys []string
 			var values []interface{}
 			if sizex != 0 {
-				key, val := tile.Buf.ReadKey()
+				key, val := tile.Buf.ReadTag()
 				for tile.Buf.Pos < endpos {
-					if key == 1 && val == 2 {
+					if key == proto.Layer.Name && val == pbf.Bytes {
 						layername = tile.Buf.ReadString()
-						key, val = tile.Buf.ReadKey()
+						key, val = tile.Buf.ReadTag()
 					}
-					for key == 2 && val == 2 {
+					for key == proto.Layer.Features && val == pbf.Bytes {
 						features = append(features, tile.Buf.Pos)
 						feat_size := tile.Buf.ReadVarint()
 
 						tile.Buf.Pos += feat_size
-						key, val = tile.Buf.ReadKey()
+						key, val = tile.Buf.ReadTag()
 					}
-					for key == 3 && val == 2 {
+					for key == proto.Layer.Keys && val == pbf.Bytes {
 						keys = append(keys, tile.Buf.ReadString())
-						key, val = tile.Buf.ReadKey()
+						key, val = tile.Buf.ReadTag()
 					}
-					for key == 4 && val == 2 {
+					for key == proto.Layer.Values && val == pbf.Bytes {
 						tile.Buf.ReadVarint()
-						newkey, _ := tile.Buf.ReadKey()
+						newkey, _ := tile.Buf.ReadTag()
 						switch newkey {
-						case 1:
+						case proto.Value.StringValue:
 							values = append(values, tile.Buf.ReadString())
-						case 2:
+						case proto.Value.FloatValue:
 							values = append(values, tile.Buf.ReadFloat())
-						case 3:
+						case proto.Value.DoubleValue:
 							values = append(values, tile.Buf.ReadDouble())
-						case 4:
+						case proto.Value.IntValue:
 							values = append(values, tile.Buf.ReadInt64())
-						case 5:
+						case proto.Value.UIntValue:
 							values = append(values, tile.Buf.ReadUInt64())
-						case 6:
+						case proto.Value.SIntValue:
 							values = append(values, tile.Buf.ReadUInt64())
-						case 7:
+						case proto.Value.BoolIntValue:
 							values = append(values, tile.Buf.ReadBool())
 						}
-						key, val = tile.Buf.ReadKey()
+						key, val = tile.Buf.ReadTag()
 					}
-					if key == 5 && val == 0 {
+					if key == proto.Layer.Extent && val == pbf.Varint {
 						extent = int(tile.Buf.ReadVarint())
-						key, val = tile.Buf.ReadKey()
+						key, val = tile.Buf.ReadTag()
 					}
-					if key == 15 && val == 0 {
+					if key == proto.Layer.Version && val == pbf.Varint {
 						_ = int(tile.Buf.ReadVarint())
-						key, val = tile.Buf.ReadKey()
+						key, val = tile.Buf.ReadTag()
 
 					}
 				}
@@ -144,13 +150,13 @@ func ReadTile(bytevals []byte, tileid m.TileID) (totalfeautures []*geom.Feature,
 				feature := &geom.Feature{Properties: map[string]interface{}{}}
 
 				for tile.Buf.Pos < endpos {
-					key, val := tile.Buf.ReadKey()
+					key, val := tile.Buf.ReadTag()
 
-					if key == 1 && val == 0 {
+					if key == proto.Feature.ID && val == pbf.Varint {
 						id = int(tile.Buf.ReadUInt64())
 					}
 
-					if key == 2 && val == 2 {
+					if key == proto.Feature.Tags && val == pbf.Bytes {
 						tags := tile.Buf.ReadPackedUInt32()
 						i := 0
 						for i < len(tags) {
@@ -170,10 +176,10 @@ func ReadTile(bytevals []byte, tileid m.TileID) (totalfeautures []*geom.Feature,
 							i += 2
 						}
 					}
-					if key == 3 && val == 0 {
+					if key == proto.Feature.Type && val == pbf.Varint {
 						geom_type = int(tile.Buf.Varint()[0])
 					}
-					if key == 4 && val == 2 {
+					if key == proto.Feature.Geometry && val == pbf.Bytes {
 						feature_geometry = tile.Buf.Pos
 						size := tile.Buf.ReadVarint()
 						tile.Buf.Pos += size + 1
@@ -269,19 +275,19 @@ func ReadTile(bytevals []byte, tileid m.TileID) (totalfeautures []*geom.Feature,
 				}
 
 				switch geom_type {
-				case 1:
+				case GeomTypePoint:
 					if len(polygons[0][0]) == 1 {
 						feature.GeometryData = *geom.NewPointGeometryData(polygons[0][0][0])
 					} else {
 						feature.GeometryData = *geom.NewMultiPointGeometryData(polygons[0][0]...)
 					}
-				case 2:
+				case GeomTypeLineString:
 					if len(polygons[0]) == 1 {
 						feature.GeometryData = *geom.NewLineStringGeometryData(polygons[0][0])
 					} else {
 						feature.GeometryData = *geom.NewMultiLineStringGeometryData(polygons[0]...)
 					}
-				case 3:
+				case GeomTypePolygon:
 					if len(polygons) == 1 {
 						feature.GeometryData = *geom.NewPolygonGeometryData(polygons[0])
 					} else {

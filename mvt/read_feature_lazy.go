@@ -7,7 +7,7 @@ import (
 	"github.com/flywave/go-geom"
 	m "github.com/flywave/go-mapbox/tileid"
 
-	"github.com/murphy214/pbf"
+	"github.com/flywave/go-pbf"
 )
 
 type Feature struct {
@@ -17,7 +17,7 @@ type Feature struct {
 	GeometryPos int
 	extent      int
 	GeomInt     int
-	Buf         *pbf.PBF
+	Buf         *pbf.Reader
 }
 
 func DeltaDim(num int) float64 {
@@ -71,13 +71,15 @@ func (layer *Layer) Feature() (feature *Feature, err error) {
 
 	feature = &Feature{Properties: map[string]interface{}{}}
 
-	for layer.Buf.Pos < endpos {
-		key, val := layer.Buf.ReadKey()
+	proto := layer.Proto
 
-		if key == 1 && val == 0 {
+	for layer.Buf.Pos < endpos {
+		key, val := layer.Buf.ReadTag()
+
+		if key == proto.Feature.ID && val == pbf.Varint {
 			feature.ID = int(layer.Buf.ReadUInt64())
 		}
-		if key == 2 && val == 2 {
+		if key == proto.Feature.Tags && val == pbf.Bytes {
 			tags := layer.Buf.ReadPackedUInt32()
 			i := 0
 			for i < len(tags) {
@@ -97,7 +99,7 @@ func (layer *Layer) Feature() (feature *Feature, err error) {
 				i += 2
 			}
 		}
-		if key == 3 && val == 0 {
+		if key == proto.Feature.Type && val == pbf.Varint {
 			geomType := int(layer.Buf.Varint()[0])
 			feature.GeomInt = geomType
 			switch geomType {
@@ -109,7 +111,7 @@ func (layer *Layer) Feature() (feature *Feature, err error) {
 				feature.Type = "Polygon"
 			}
 		}
-		if key == 4 && val == 2 {
+		if key == proto.Feature.Geometry && val == pbf.Bytes {
 			feature.GeometryPos = layer.Buf.Pos
 			size := layer.Buf.ReadVarint()
 			layer.Buf.Pos += size + 1

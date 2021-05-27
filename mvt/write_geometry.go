@@ -12,8 +12,8 @@ type Cursor struct {
 	Geometry   []uint32
 	LastPoint  []int32
 	Bounds     m.Extrema
-	DeltaX     float64
-	DeltaY     float64
+	DeltaX     float64 // delta between bounds
+	DeltaY     float64 // delta between bounds
 	Count      uint32
 	Extent     int32
 	Bds        m.Extrema
@@ -140,11 +140,9 @@ func (cur *Cursor) MakeLineFloat(coords [][]float64) {
 	firstpoint := cur.SinglePoint(coords[0])
 	cur.MovePoint(firstpoint)
 	cur.Geometry = append(cur.Geometry, lineTo(uint32(len(coords)-1)))
-
 	for _, point := range coords[1:] {
 		cur.LinePoint(cur.SinglePoint(point))
 	}
-
 	cur.Geometry[startpos+3] = lineTo(cur.Count)
 }
 
@@ -185,6 +183,8 @@ func assert_winding_order(coord [][]int32, exp_orient string) [][]int32 {
 	} else {
 		return coord
 	}
+	return coord
+
 }
 
 func (cur *Cursor) AssertConvert(coord [][]float64, exp_orient string) {
@@ -232,7 +232,9 @@ func (cur *Cursor) MakePolygon(coords [][][]int32) []uint32 {
 	coord := coords[0]
 	coord = assert_winding_order(coord, "clockwise")
 	cur.MakeLine(coord)
+
 	cur.Geometry = append(cur.Geometry, closePath(1))
+
 	if len(coords) > 1 {
 		for _, coord := range coords[1:] {
 			coord = assert_winding_order(coord, "counter")
@@ -305,6 +307,7 @@ func (cur *Cursor) MakePointFloat(point []float64) {
 	coords := []int32{newpoint[0], newpoint[1]}
 	cur.Geometry = []uint32{moveTo(uint32(1))}
 	cur.LinePoint(coords)
+
 }
 
 func (cur *Cursor) MakePoint(point []int32) {

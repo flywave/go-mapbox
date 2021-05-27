@@ -1,29 +1,26 @@
 package mvt
 
 import (
-	"errors"
-
 	m "github.com/flywave/go-mapbox/tileid"
 
 	"github.com/flywave/go-geom"
 
-	"github.com/murphy214/pbf"
+	"github.com/flywave/go-pbf"
 )
 
 type LayerWrite struct {
-	TileID       m.TileID
-	DeltaX       float64
-	DeltaY       float64
-	Name         string
-	Extent       int
-	Version      int
-	Keys_Map     map[string]uint32
-	Keys_Bytes   []byte
-	Values_Map   map[interface{}]uint32
-	Values_Bytes []byte
-	Features     []byte
-	Cursor       *Cursor
-	ReduceBool   bool
+	TileID     m.TileID
+	DeltaX     float64
+	DeltaY     float64
+	Name       string
+	Extent     int
+	Version    int
+	Keys_Map   map[string]uint32
+	Values_Map map[interface{}]uint32
+	Cursor     *Cursor
+	ReduceBool bool
+	Buf        *pbf.Writer
+	Proto      Proto
 }
 
 type Config struct {
@@ -34,17 +31,19 @@ type Config struct {
 	ReduceBool bool
 	ExtentBool bool
 	Tolerance  float64
+	Proto      ProtoType
 }
 
-func NewLayer(tileid m.TileID, name string) LayerWrite {
+func NewLayer(tileid m.TileID, name string, pt ProtoType) LayerWrite {
 	keys_map := map[string]uint32{}
 	values_map := map[interface{}]uint32{}
 	cur := NewCursor(tileid)
-	return LayerWrite{TileID: tileid, Keys_Map: keys_map, Values_Map: values_map, Name: name, Cursor: cur}
+	proto := getProto(pt)
+	return LayerWrite{TileID: tileid, Keys_Map: keys_map, Values_Map: values_map, Name: name, Cursor: cur, Buf: pbf.NewWriter(), Proto: proto}
 }
 
-func NewConfig(layername string, tileid m.TileID) Config {
-	return Config{Name: layername, TileID: tileid, ExtentBool: true, Tolerance: 3}
+func NewConfig(layername string, tileid m.TileID, pt ProtoType) Config {
+	return Config{Name: layername, TileID: tileid, ExtentBool: true, Tolerance: 3, Proto: pt}
 }
 
 func NewLayerConfig(config Config) LayerWrite {
@@ -56,6 +55,7 @@ func NewLayerConfig(config Config) LayerWrite {
 	if config.Version == 0 {
 		config.Version = 2
 	}
+	proto := getProto(config.Proto)
 	cur := NewCursorExtent(config.TileID, config.Extent)
 	bds := m.Bounds(config.TileID)
 	return LayerWrite{TileID: config.TileID,
@@ -68,23 +68,29 @@ func NewLayerConfig(config Config) LayerWrite {
 		Version:    config.Version,
 		Extent:     int(config.Extent),
 		ReduceBool: config.ReduceBool,
+		Buf:        pbf.NewWriter(),
+		Proto:      proto,
 	}
 }
 
-func (layer *LayerWrite) AddKey(key string) uint32 {
-	layer.Keys_Bytes = append(layer.Keys_Bytes, 26)
+/**
+layer.Keys_Bytes = append(layer.Keys_Bytes, 26)
 	layer.Keys_Bytes = append(layer.Keys_Bytes, pbf.EncodeVarint(uint64(len(key)))...)
 	layer.Keys_Bytes = append(layer.Keys_Bytes, []byte(key)...)
 	myint := uint32(len(layer.Keys_Map))
 	layer.Keys_Map[key] = myint
-	return myint
+	**/
+func (layer *LayerWrite) AddKey(key string) uint32 {
+	return 0
 }
 
-func (layer *LayerWrite) AddValue(value interface{}) uint32 {
-	layer.Values_Bytes = append(layer.Values_Bytes, WriteValue(value)...)
+/**
+layer.Values_Bytes = append(layer.Values_Bytes, WriteValue(value)...)
 	myint := uint32(len(layer.Values_Map))
 	layer.Values_Map[value] = myint
-	return myint
+	**/
+func (layer *LayerWrite) AddValue(value interface{}) uint32 {
+	return 0
 }
 
 func (layer *LayerWrite) GetTags(properties map[string]interface{}) []uint32 {
@@ -113,8 +119,8 @@ func (layer *LayerWrite) RefreshCursor() {
 	layer.Cursor.Bds = startbds
 }
 
-func WriteLayer(features []*geom.Feature, config Config) (total_bytes []byte, err error) {
-	defer func() {
+/**
+defer func() {
 		if recover() != nil {
 			err = errors.New("Error in WriteLayer().")
 		}
@@ -150,9 +156,13 @@ func WriteLayer(features []*geom.Feature, config Config) (total_bytes []byte, er
 	beg := append([]byte{26}, pbf.EncodeVarint(uint64(len(total_bytes)))...)
 	total_bytes = append(beg, total_bytes...)
 	return total_bytes, err
+	**/
+
+func WriteLayer(features []*geom.Feature, config Config) (total_bytes []byte, err error) {
+	return nil, nil
 }
 
-func (mylayer *LayerWrite) Flush() []byte {
+/**
 	total_bytes := []byte{}
 
 	if len(mylayer.Name) > 0 {
@@ -175,4 +185,8 @@ func (mylayer *LayerWrite) Flush() []byte {
 
 	beg := append([]byte{26}, pbf.EncodeVarint(uint64(len(total_bytes)))...)
 	return append(beg, total_bytes...)
+**/
+
+func (mylayer *LayerWrite) Flush() []byte {
+	return nil
 }

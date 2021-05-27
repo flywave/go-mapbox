@@ -3,8 +3,8 @@ package mvt
 import (
 	"testing"
 
-	"github.com/flywave/go-geom"
 	m "github.com/flywave/go-mapbox/tileid"
+	geojson "github.com/paulmach/go.geojson"
 )
 
 var polygon_s = `{"geometry": {"type": "Polygon", "coordinates": [[[-7.734374999999999, 25.799891182088334], [10.8984375, -34.016241889667015], [45.703125, 17.644022027872726], [-5.9765625, 26.43122806450644], [-7.734374999999999, 25.799891182088334]]]}, "type": "Feature", "properties": {}}`
@@ -14,12 +14,12 @@ var multilinestring_s = `{"geometry": {"type": "MultiLineString", "coordinates":
 var point_s = `{"geometry": {"type": "Point", "coordinates": [-48.1640625, 47.754097979680026]}, "type": "Feature", "properties": {}}`
 var multipoint_s = `{"geometry": {"type": "MultiPoint", "coordinates": [[-48.1640625, 47.754097979680026], [-9.140625, 4.214943141390651]]}, "type": "Feature", "properties": {}}`
 
-var polygon, err = geom.UnmarshalFeature([]byte(polygon_s))
-var multipolygon, _ = geom.UnmarshalFeature([]byte(multipolygon_s))
-var linestring, _ = geom.UnmarshalFeature([]byte(linestring_s))
-var multilinestring, _ = geom.UnmarshalFeature([]byte(multilinestring_s))
-var point, _ = geom.UnmarshalFeature([]byte(point_s))
-var multipoint, _ = geom.UnmarshalFeature([]byte(multipoint_s))
+var polygon, err = geojson.UnmarshalFeature([]byte(polygon_s))
+var multipolygon, _ = geojson.UnmarshalFeature([]byte(multipolygon_s))
+var linestring, _ = geojson.UnmarshalFeature([]byte(linestring_s))
+var multilinestring, _ = geojson.UnmarshalFeature([]byte(multilinestring_s))
+var point, _ = geojson.UnmarshalFeature([]byte(point_s))
+var multipoint, _ = geojson.UnmarshalFeature([]byte(multipoint_s))
 
 var polygon_geometry = []uint32{0x9, 0xf50, 0xda0, 0x22, 0x1a8, 0x598, 0x318, 0x4cf, 0x499, 0xd7, 0x25, 0x10, 0xf}
 var multipolygon_geometry = []uint32{0x9, 0x99e, 0xab0, 0x2a, 0x32a, 0xa58, 0x5f0, 0x50f, 0x1f, 0x687, 0x5ff, 0x277, 0x2f9, 0x3b8, 0xf, 0x9, 0x95a, 0x4e7, 0x22, 0x3b8, 0x8c0, 0x18, 0x627, 0x3df, 0x2c9, 0x10, 0x32, 0xf}
@@ -29,8 +29,8 @@ var point_geometry = []uint32{0x9, 0xbb8, 0xb28}
 var multipoint_geometry = []uint32{0x11, 0xbb8, 0xb28, 0x378, 0x478}
 
 func TestPolygonFloat(t *testing.T) {
-	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
-	cur.MakePolygonFloat(polygon.GeometryData.Polygon)
+	cur := NewCursorExtent(m.TileID{0, 0, 0}, 4096)
+	cur.MakePolygonFloat(polygon.Geometry.Polygon)
 
 	for i := range cur.Geometry {
 		if cur.Geometry[i] != polygon_geometry[i] {
@@ -40,8 +40,8 @@ func TestPolygonFloat(t *testing.T) {
 }
 
 func TestMultiPolygonFloat(t *testing.T) {
-	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
-	cur.MakeMultiPolygonFloat(multipolygon.GeometryData.MultiPolygon)
+	cur := NewCursorExtent(m.TileID{0, 0, 0}, 4096)
+	cur.MakeMultiPolygonFloat(multipolygon.Geometry.MultiPolygon)
 
 	for i := range cur.Geometry {
 		if cur.Geometry[i] != multipolygon_geometry[i] {
@@ -51,8 +51,8 @@ func TestMultiPolygonFloat(t *testing.T) {
 }
 
 func TestLineStringFloat(t *testing.T) {
-	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
-	cur.MakeLineFloat(linestring.GeometryData.LineString)
+	cur := NewCursorExtent(m.TileID{0, 0, 0}, 4096)
+	cur.MakeLineFloat(linestring.Geometry.LineString)
 
 	for i := range cur.Geometry {
 		if cur.Geometry[i] != linestring_geometry[i] {
@@ -62,8 +62,8 @@ func TestLineStringFloat(t *testing.T) {
 }
 
 func TestMultiLineStringFloat(t *testing.T) {
-	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
-	cur.MakeMultiLineFloat(multilinestring.GeometryData.MultiLineString)
+	cur := NewCursorExtent(m.TileID{0, 0, 0}, 4096)
+	cur.MakeMultiLineFloat(multilinestring.Geometry.MultiLineString)
 
 	for i := range cur.Geometry {
 		if cur.Geometry[i] != multilinestring_geometry[i] {
@@ -73,8 +73,8 @@ func TestMultiLineStringFloat(t *testing.T) {
 }
 
 func TestPointFloat(t *testing.T) {
-	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
-	cur.MakePointFloat(point.GeometryData.Point)
+	cur := NewCursorExtent(m.TileID{0, 0, 0}, 4096)
+	cur.MakePointFloat(point.Geometry.Point)
 
 	for i := range cur.Geometry {
 		if cur.Geometry[i] != point_geometry[i] {
@@ -84,8 +84,8 @@ func TestPointFloat(t *testing.T) {
 }
 
 func TestMultiPointFloat(t *testing.T) {
-	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
-	cur.MakeMultiPointFloat(multipoint.GeometryData.MultiPoint)
+	cur := NewCursorExtent(m.TileID{0, 0, 0}, 4096)
+	cur.MakeMultiPointFloat(multipoint.Geometry.MultiPoint)
 
 	for i := range cur.Geometry {
 		if cur.Geometry[i] != multipoint_geometry[i] {
