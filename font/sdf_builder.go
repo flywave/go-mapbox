@@ -5,7 +5,7 @@ import (
 	"image"
 	"math"
 
-	"github.com/golang/freetype/truetype"
+	"github.com/flywave/freetype/truetype"
 	"golang.org/x/image/draw"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
