@@ -63,7 +63,7 @@ type StyleSource struct {
 	Url         string             `json:"url,omitempty"`
 	MinZoom     float32            `json:"min_zoom,omitempty"`
 	MaxZoom     float32            `json:"max_zoom,omitempty"`
-	Bounds      [4]float32         `json:"bounds,omitempty"`
+	Bounds      [4]float64         `json:"bounds,omitempty"`
 	Scheme      string             `json:"scheme,omitempty"` // xyz or tms
 	Attribution *map[string]string `json:"attribution,omitempty"`
 	TileSize    int                `json:"tileSize,omitempty"`
