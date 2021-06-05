@@ -7,6 +7,8 @@ import (
 	"image/png"
 	"math"
 	"os"
+
+	rt "github.com:flywave/go-raster"
 )
 
 const (
@@ -41,11 +43,10 @@ func LoadDEMData(path string, encoding int) (*DEMData, error) {
 	}
 
 	data := make([][4]byte, rect.Dx()*rect.Dy())
-
+	for y := 0; y < rect.Dy(); y++ {
 	for x := 0; x < rect.Dx(); x++ {
-		for y := 0; y < rect.Dy(); y++ {
 			rgba := m.At(x, y).(color.NRGBA)
-			data[x*rect.Dx()+y] = [4]byte{rgba.R, rgba.G, rgba.B, rgba.A}
+			data[y*rect.Dx()+x] = [4]byte{rgba.R, rgba.G, rgba.B, rgba.A}
 		}
 	}
 	return NewDEMData(data, encoding), nil
@@ -136,19 +137,60 @@ func (d *DEMData) getUnpackVector() [4]float64 {
 	return UNPACK_TERRARIUM
 }
 
-func (d *DEMData) Save(path string) error {
-	img := image.NewNRGBA(image.Rect(0, 0, d.Dim, d.Dim))
-	for r := 0; r < d.Dim; r++ {
-		for c := 0; c < d.Dim; c++ {
-			img.SetNRGBA(c, r, color.NRGBA{
-				R: d.Data[d.idx(r, c)][0],
-				G: d.Data[d.idx(r, c)][1],
-				B: d.Data[d.idx(r, c)][2],
-				A: d.Data[d.idx(r, c)][3],
-			})
+
+type DemPacker interface{
+	func Pack(val float64,index int) [4]byte
+}
+ 
+type MapboxPacker struct{
+	Base float64
+	Interval float64
+}
+
+func (*MapboxPacker)Pack(h float64,index int) [4]byte {
+	return [4]byte{}
+}
+
+ type TerrariumPacker struct{
+		Base float64
+ }
+
+func (*TerrariumPacker)Pack(h float64,index int) [4]byte {
+	return [4]byte{}
+}
+
+
+func (enc *DemEncoder)Encode(path string, encode ValueEncoder) (image.Image,error) {
+	rst,err:=rt.CreateRasterFromFile(path)
+	if err != nil {
+		return nil, err
+	}
+	data := make([][4]byte,rst.Rows*rst.Columns)
+	img := image.NewNRGBA(image.Rect(0, 0, rst.Rows, rst.Columns))
+
+	for y := 0; y < rst.Columns; y++ {
+			for x := 0; x < rst.Rows; x++ {
+			h := rst.Value(x,y)
+		   dt= encode(h)
+			 img.SetNRGBA(x, y, color.NRGBA{
+				R: dt[0],
+				G: dt[1],
+				B: dt[2],
+				A: dt[3],
+			}
 		}
 	}
-	f, _ := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0600)
+	return data, nil
+}
+
+
+func  (enc *DemEncoder) Convert2Png(src,dest string, encode ValueEncoder) error{
+	img,err:=Encode(src,encode)
+	if err!=nil{
+		return err
+	}
+ 
+	f, _ := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE, 0600)
 	defer f.Close()
 
 	if err := png.Encode(f, img); err != nil {
@@ -156,3 +198,4 @@ func (d *DEMData) Save(path string) error {
 	}
 	return nil
 }
+ 
