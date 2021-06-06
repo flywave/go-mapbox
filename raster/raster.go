@@ -139,7 +139,7 @@ func (d *DEMData) getUnpackVector() [4]float64 {
 
 
 type DemPacker interface{
-	func Pack(val float64,index int) [4]byte
+	func Pack(val float64) [4]byte
 }
  
 type MapboxPacker struct{
@@ -147,20 +147,41 @@ type MapboxPacker struct{
 	Interval float64
 }
 
-func (*MapboxPacker)Pack(h float64,index int) [4]byte {
-	return [4]byte{}
+func (p *MapboxPacker)Pack(h float64) [4]byte {
+   val := (h + p.base) / p.Interval
+    r := (math.Floor(math.Floor(val / 256) / 256) / 256 -
+             math.Floor(math.Floor(math.Floor(val / 256) / 256) / 256)) *
+            256
+    g := (math.Floor(val / 256) / 256 -
+             math.Floor(math.Floor(val / 256) / 256)) *
+            256
+    b := (val / 256 - math.Floor(val / 256)) * 256
+		var image [4]byte
+   image[index] = uint8_t(r)
+   image[index + 1] = uint8_t(g)
+   image[index + 2] = uint8_t(b)
+   image[index + 3] = 1
+	 return image
 }
 
  type TerrariumPacker struct{
 		Base float64
  }
 
-func (*TerrariumPacker)Pack(h float64,index int) [4]byte {
-	return [4]byte{}
+func (p *TerrariumPacker)Pack(h float64) [4]byte {
+   val = h + p.Base
+   r := math.Floor(val / 256)
+   g := math.Floor(int(val) % 256)
+   b := math.Floor(int(val * 256) % 256)
+   image[index] = uint8_t(r)
+   image[index + 1] = uint8_t(g)
+   image[index + 2] = uint8_t(b)
+   image[index + 3] = 1
+	 return image
 }
 
 
-func (enc *DemEncoder)Encode(path string, encode ValueEncoder) (image.Image,error) {
+func DemEncode(path string, pk DemPacker) (image.Image,error) {
 	rst,err:=rt.CreateRasterFromFile(path)
 	if err != nil {
 		return nil, err
@@ -171,7 +192,7 @@ func (enc *DemEncoder)Encode(path string, encode ValueEncoder) (image.Image,erro
 	for y := 0; y < rst.Columns; y++ {
 			for x := 0; x < rst.Rows; x++ {
 			h := rst.Value(x,y)
-		   dt= encode(h)
+		   dt= pk.Pack(h)
 			 img.SetNRGBA(x, y, color.NRGBA{
 				R: dt[0],
 				G: dt[1],
@@ -180,22 +201,5 @@ func (enc *DemEncoder)Encode(path string, encode ValueEncoder) (image.Image,erro
 			}
 		}
 	}
-	return data, nil
+	return img, nil
 }
-
-
-func  (enc *DemEncoder) Convert2Png(src,dest string, encode ValueEncoder) error{
-	img,err:=Encode(src,encode)
-	if err!=nil{
-		return err
-	}
- 
-	f, _ := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE, 0600)
-	defer f.Close()
-
-	if err := png.Encode(f, img); err != nil {
-		return err
-	}
-	return nil
-}
- 
