@@ -8,7 +8,7 @@ import (
 	"math"
 	"os"
 
-	rt "github.com:flywave/go-raster"
+	rt "github.com/flywave/go-raster"
 )
 
 const (
