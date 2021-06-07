@@ -4,7 +4,6 @@ import (
 	"errors"
 	"image"
 	"image/color"
-	"image/png"
 	"math"
 	"os"
 
@@ -44,7 +43,7 @@ func LoadDEMData(path string, encoding int) (*DEMData, error) {
 
 	data := make([][4]byte, rect.Dx()*rect.Dy())
 	for y := 0; y < rect.Dy(); y++ {
-	for x := 0; x < rect.Dx(); x++ {
+		for x := 0; x < rect.Dx(); x++ {
 			rgba := m.At(x, y).(color.NRGBA)
 			data[y*rect.Dx()+x] = [4]byte{rgba.R, rgba.G, rgba.B, rgba.A}
 		}
@@ -137,68 +136,66 @@ func (d *DEMData) getUnpackVector() [4]float64 {
 	return UNPACK_TERRARIUM
 }
 
-
-type DemPacker interface{
-	func Pack(val float64) [4]byte
+type DemPacker interface {
+	Pack(val float64) [4]byte
 }
- 
-type MapboxPacker struct{
-	Base float64
+
+type MapboxPacker struct {
+	Base     float64
 	Interval float64
 }
 
-func (p *MapboxPacker)Pack(h float64) [4]byte {
-   val := (h + p.base) / p.Interval
-    r := (math.Floor(math.Floor(val / 256) / 256) / 256 -
-             math.Floor(math.Floor(math.Floor(val / 256) / 256) / 256)) *
-            256
-    g := (math.Floor(val / 256) / 256 -
-             math.Floor(math.Floor(val / 256) / 256)) *
-            256
-    b := (val / 256 - math.Floor(val / 256)) * 256
-		var image [4]byte
-   image[index] = uint8_t(r)
-   image[index + 1] = uint8_t(g)
-   image[index + 2] = uint8_t(b)
-   image[index + 3] = 1
-	 return image
+func (p *MapboxPacker) Pack(h float64) [4]byte {
+	val := (h + p.Base) / p.Interval
+	r := (math.Floor(math.Floor(val/256)/256)/256 -
+		math.Floor(math.Floor(math.Floor(val/256)/256)/256)) *
+		256
+	g := (math.Floor(val/256)/256 -
+		math.Floor(math.Floor(val/256)/256)) *
+		256
+	b := (val/256 - math.Floor(val/256)) * 256
+	var image [4]byte
+	image[0] = byte(r)
+	image[1] = byte(g)
+	image[2] = byte(b)
+	image[3] = 1
+	return image
 }
 
- type TerrariumPacker struct{
-		Base float64
- }
-
-func (p *TerrariumPacker)Pack(h float64) [4]byte {
-   val = h + p.Base
-   r := math.Floor(val / 256)
-   g := math.Floor(int(val) % 256)
-   b := math.Floor(int(val * 256) % 256)
-   image[index] = uint8_t(r)
-   image[index + 1] = uint8_t(g)
-   image[index + 2] = uint8_t(b)
-   image[index + 3] = 1
-	 return image
+type TerrariumPacker struct {
+	Base float64
 }
 
+func (p *TerrariumPacker) Pack(h float64) [4]byte {
+	val := h + p.Base
+	r := math.Floor(val / 256)
+	g := int(val) % 256
+	b := int(val*256) % 25
+	var image [4]byte
+	image[0] = byte(r)
+	image[1] = byte(g)
+	image[2] = byte(b)
+	image[3] = 1
+	return image
+}
 
-func DemEncode(path string, pk DemPacker) (image.Image,error) {
-	rst,err:=rt.CreateRasterFromFile(path)
+func DemEncode(path string, pk DemPacker) (image.Image, error) {
+	rst, err := rt.CreateRasterFromFile(path)
 	if err != nil {
 		return nil, err
 	}
-	data := make([][4]byte,rst.Rows*rst.Columns)
 	img := image.NewNRGBA(image.Rect(0, 0, rst.Rows, rst.Columns))
 
 	for y := 0; y < rst.Columns; y++ {
-			for x := 0; x < rst.Rows; x++ {
-			h := rst.Value(x,y)
-		   dt= pk.Pack(h)
-			 img.SetNRGBA(x, y, color.NRGBA{
+		for x := 0; x < rst.Rows; x++ {
+			h := rst.Value(x, y)
+			dt := pk.Pack(h)
+			img.SetNRGBA(x, y, color.NRGBA{
 				R: dt[0],
 				G: dt[1],
 				B: dt[2],
 				A: dt[3],
-			}
+			})
 		}
 	}
 	return img, nil
