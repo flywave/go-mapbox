@@ -27,7 +27,7 @@ func (layer *LayerWrite) AddFeature(feature *geom.Feature) {
 	}
 	if feature.Geometry != nil {
 		var geomtype byte
-		switch (*feature.Geometry).GetType() {
+		switch (feature.Geometry).GetType() {
 		case "Point", "MultiPoint":
 			geomtype = 1
 		case "LineString", "MultiLineString":
@@ -39,27 +39,27 @@ func (layer *LayerWrite) AddFeature(feature *geom.Feature) {
 	}
 	var abortBool bool
 	if feature.Geometry != nil {
-		switch (*feature.Geometry).GetType() {
+		switch (feature.Geometry).GetType() {
 		case "Point":
-			layer.Cursor.MakePointFloat((*feature.Geometry).(geom.Point).Data())
+			layer.Cursor.MakePointFloat((feature.Geometry).(geom.Point).Data())
 			fwriter.WritePackedUInt32(layer.Proto.Feature.Geometry, layer.Cursor.Geometry)
 		case "LineString":
-			layer.Cursor.MakeLineFloat((*feature.Geometry).(geom.LineString).Data())
+			layer.Cursor.MakeLineFloat((feature.Geometry).(geom.LineString).Data())
 			if layer.Cursor.Count == 0 {
 				abortBool = true
 			}
 			fwriter.WritePackedUInt32(layer.Proto.Feature.Geometry, layer.Cursor.Geometry)
 		case "Polygon":
-			layer.Cursor.MakePolygonFloat((*feature.Geometry).(geom.Polygon).Data())
+			layer.Cursor.MakePolygonFloat((feature.Geometry).(geom.Polygon).Data())
 			fwriter.WritePackedUInt32(layer.Proto.Feature.Geometry, layer.Cursor.Geometry)
 		case "MultiPoint":
-			layer.Cursor.MakeMultiPointFloat((*feature.Geometry).(geom.MultiPoint).Data())
+			layer.Cursor.MakeMultiPointFloat((feature.Geometry).(geom.MultiPoint).Data())
 			fwriter.WritePackedUInt32(layer.Proto.Feature.Geometry, layer.Cursor.Geometry)
 		case "MultiLineString":
-			layer.Cursor.MakeMultiLineFloat((*feature.Geometry).(geom.MultiLine).Data())
+			layer.Cursor.MakeMultiLineFloat((feature.Geometry).(geom.MultiLine).Data())
 			fwriter.WritePackedUInt32(layer.Proto.Feature.Geometry, layer.Cursor.Geometry)
 		case "MultiPolygon":
-			layer.Cursor.MakeMultiPolygonFloat((*feature.Geometry).(geom.MultiPolygon).Data())
+			layer.Cursor.MakeMultiPolygonFloat((feature.Geometry).(geom.MultiPolygon).Data())
 			fwriter.WritePackedUInt32(layer.Proto.Feature.Geometry, layer.Cursor.Geometry)
 		}
 	}

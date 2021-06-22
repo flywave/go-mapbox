@@ -127,3 +127,14 @@ func TestM(t *testing.T) {
 		}
 	}
 }
+
+var bt, _ = ioutil.ReadFile("../data/3194.mvt")
+var tileid1 = m.TileID{X: 6780, Y: 3194, Z: 13}
+
+func TestReadMVT(t *testing.T) {
+	feats, reg, _ := ReadRawTile(bt, tileid1, PROTO_MAPBOX)
+	for _, f := range feats {
+		fmt.Println(*f)
+	}
+	fmt.Println(reg)
+}
