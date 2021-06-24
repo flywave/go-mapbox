@@ -22,6 +22,10 @@ type TileID struct {
 	Z uint64
 }
 
+func (t TileID) ToString() string {
+	return fmt.Sprintf("%d.%d.%d", t.X, t.Y, t.Z)
+}
+
 // Point represents a point in space.
 type Point struct {
 	X float64
