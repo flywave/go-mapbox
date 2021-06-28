@@ -18,12 +18,6 @@ const (
 	StyleVersion           = 8
 	LayoutVisible          = "visible"
 	LayoutVisibleNone      = "none"
-	SourceTypeVector       = "vector"
-	SourceTypeRaster       = "raster"
-	SourceTypeGeoJSON      = "geojson"
-	SourceTypeImage        = "image"
-	SourceTypeVideo        = "video"
-	SourceTypeCanvas       = "canvas"
 )
 
 const (
