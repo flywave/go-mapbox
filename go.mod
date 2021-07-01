@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/flywave/freetype v0.0.0-20200612054648-f2aab071ba59
-	github.com/flywave/go-geom v0.0.0-20210621141000-9fd2bbd6ac53
+	github.com/flywave/go-geom v0.0.0-20210701052944-b24be152a148
 	github.com/flywave/go-pbf v0.0.0-20210527131326-8e27970d0076
 	github.com/flywave/go-raster v0.0.0-20210526065301-f50e348f662e
 	github.com/go-courier/reflectx v1.3.4

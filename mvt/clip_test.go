@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/flywave/go-geom/general"
 	m "github.com/flywave/go-mapbox/tileid"
 
 	"github.com/flywave/go-geom"
@@ -27,7 +28,7 @@ func TestClip(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	feature, err := geom.UnmarshalFeature(bs)
+	feature, err := general.UnmarshalFeature(bs)
 	if err != nil {
 		fmt.Println(err)
 	}

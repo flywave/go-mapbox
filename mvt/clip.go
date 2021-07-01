@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"math"
 
+	"github.com/flywave/go-geom/general"
 	m "github.com/flywave/go-mapbox/tileid"
 
 	"github.com/flywave/go-geom"
@@ -501,7 +502,7 @@ func ClipFeature(feature *geom.Feature, endzoom int, keep_parents bool) map[m.Ti
 
 func ReadFeatures(filename string) []*geom.Feature {
 	bs, _ := ioutil.ReadFile(filename)
-	fc, _ := geom.UnmarshalFeatureCollection(bs)
+	fc, _ := general.UnmarshalFeatureCollection(bs)
 	return fc.Features
 }
 
