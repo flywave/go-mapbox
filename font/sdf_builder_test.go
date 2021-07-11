@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/golang/freetype/truetype"
+	"github.com/flywave/freetype/truetype"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/require"
 )

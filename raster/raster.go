@@ -7,6 +7,8 @@ import (
 	"math"
 	"os"
 
+	"github.com/flywave/imaging"
+
 	rt "github.com/flywave/go-raster"
 )
 
@@ -134,6 +136,24 @@ func (d *DEMData) getUnpackVector() [4]float64 {
 		return UNPACK_MAPBOX
 	}
 	return UNPACK_TERRARIUM
+}
+
+func (d *DEMData) Save(path string) error {
+	img := image.NewNRGBA(image.Rect(0, 0, d.Dim, d.Dim))
+
+	for y := 0; y < d.Dim; y++ {
+		for x := 0; x < d.Dim; x++ {
+			value := d.Data[d.idx(x, y)]
+			img.SetNRGBA(x, y, color.NRGBA{
+				R: value[0],
+				G: value[1],
+				B: value[2],
+				A: value[3],
+			})
+		}
+	}
+
+	return imaging.Save(img, path)
 }
 
 type DemPacker interface {

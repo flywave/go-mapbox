@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/flywave/go-geom"
+	"github.com/flywave/go-geom/general"
 	m "github.com/flywave/go-mapbox/tileid"
 )
 
@@ -14,7 +15,7 @@ func TestTile(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	features, err := geom.UnmarshalFeature(bs)
+	features, err := general.UnmarshalFeature(bs)
 	if err != nil {
 		fmt.Println(err)
 	}
