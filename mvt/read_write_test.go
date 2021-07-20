@@ -128,7 +128,7 @@ func TestM(t *testing.T) {
 	}
 }
 
-var bt, _ = ioutil.ReadFile("../data/3194.mvt")
+var bt, _ = ioutil.ReadFile("../data/0.mvt")
 var tileid1 = m.TileID{X: 6780, Y: 3194, Z: 13}
 
 func TestReadMVT(t *testing.T) {
