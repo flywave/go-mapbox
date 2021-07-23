@@ -10,15 +10,16 @@ import (
 	"testing"
 )
 
-var bytevals, _ = ioutil.ReadFile("../data/703_1635_12.pbf")
-var tileid = m.TileID{X: 701, Y: 1635, Z: 12}
+var bytevals, _ = ioutil.ReadFile("../data/1.mvt")
+var tileid = m.TileID{X: 13515, Y: 6392, Z: 14}
 
 func TestReads(t *testing.T) {
 	feats1, _ := ReadTile(bytevals, tileid, PROTO_MAPBOX)
 	m1, m2 := map[interface{}]*geom.Feature{}, map[interface{}]*geom.Feature{}
 	for _, feat := range feats1 {
-		delete(feat.Properties, "layer")
-		m1[feat.Properties["@id"]] = feat
+		for k, v := range feat.Properties {
+			fmt.Println(k, v)
+		}
 	}
 	tile, _ := NewTile(bytevals, PROTO_MAPBOX)
 	for _, layer := range tile.LayerMap {
@@ -128,11 +129,14 @@ func TestM(t *testing.T) {
 	}
 }
 
-var bt, _ = ioutil.ReadFile("../data/0.mvt")
-var tileid1 = m.TileID{X: 6780, Y: 3194, Z: 13}
+var bt, _ = ioutil.ReadFile("../data/6392.vector.pbf")
+var tileid1 = m.TileID{X: 13515, Y: 6392, Z: 14}
 
 func TestReadMVT(t *testing.T) {
-	feats, reg, _ := ReadRawTile(bt, tileid1, PROTO_MAPBOX)
+	feats, reg, err := ReadRawTile(bt, tileid1, PROTO_MAPBOX)
+	if err != nil {
+		t.Error(err)
+	}
 	for _, f := range feats {
 		fmt.Println(*f)
 	}
