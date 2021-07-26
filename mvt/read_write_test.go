@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-var bytevals, _ = ioutil.ReadFile("../data/1.mvt")
+var bytevals, _ = ioutil.ReadFile("../data/6_2_3.mvt")
 var tileid = m.TileID{X: 13515, Y: 6392, Z: 14}
 
 func TestReads(t *testing.T) {
