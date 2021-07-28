@@ -6,6 +6,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/flywave/freetype v0.0.0-20200612054648-f2aab071ba59
 	github.com/flywave/go-geom v0.0.0-20210705081559-eee15cf4b503
+	github.com/flywave/go-geotiff v0.0.0-20210728070603-df2557449cb1 // indirect
 	github.com/flywave/go-pbf v0.0.0-20210701015929-a3bdb1f6728e
 	github.com/flywave/go-raster v0.0.0-20210526065301-f50e348f662e
 	github.com/flywave/imaging v1.6.5

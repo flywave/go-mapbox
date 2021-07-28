@@ -9,7 +9,7 @@ import (
 
 	"github.com/flywave/imaging"
 
-	rt "github.com/flywave/go-raster"
+	rt "github.com/flywave/go-geotiff"
 )
 
 const (
@@ -203,10 +203,12 @@ func DemEncode(path string, pk DemPacker) (image.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	img := image.NewNRGBA(image.Rect(0, 0, rst.Rows, rst.Columns))
+	row := rst.Rows()
+	col := rst.Columns()
+	img := image.NewNRGBA(image.Rect(0, 0, row, col))
 
-	for y := 0; y < rst.Rows; y++ {
-		for x := 0; x < rst.Columns; x++ {
+	for y := 0; y < row; y++ {
+		for x := 0; x < col; x++ {
 			h := rst.Value(y, x)
 			dt := pk.Pack(h)
 			img.SetNRGBA(x, y, color.NRGBA{

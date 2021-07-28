@@ -10,6 +10,8 @@ github.com/flywave/freetype v0.0.0-20200612054648-f2aab071ba59 h1:DtXfNb9EbaDVpa
 github.com/flywave/freetype v0.0.0-20200612054648-f2aab071ba59/go.mod h1:r29LELyH+xbhmZzB6b+fi/LyejOZEr3U1n3oMSam6Kg=
 github.com/flywave/go-geom v0.0.0-20210705081559-eee15cf4b503 h1:OkIVs0M32d9LDKfOHtFxFo6pckBsia+yCQAyp5fj2/c=
 github.com/flywave/go-geom v0.0.0-20210705081559-eee15cf4b503/go.mod h1:zBBwuspACsxCjH/Go44Ogi4hk9ie03VGSzkCbq8mCW4=
+github.com/flywave/go-geotiff v0.0.0-20210728070603-df2557449cb1 h1:6gBw3qbMtxB4w2nPR3WkyCzyQe+XP2P0/DY7DbvwAbs=
+github.com/flywave/go-geotiff v0.0.0-20210728070603-df2557449cb1/go.mod h1:EJFPW3SUG56OqOQ9fyEJHf+N9Svpcv1sHb2WV/Gno5c=
 github.com/flywave/go-pbf v0.0.0-20210527131326-8e27970d0076 h1:qc6YFOhN7oL2W9gsepevsncIIspFL5mlouJW9onOUvo=
 github.com/flywave/go-pbf v0.0.0-20210527131326-8e27970d0076/go.mod h1:cfHFEG24/0hT2xCSLJb8rT/2WE8ieeIrbOJq1sql/fg=
 github.com/flywave/go-pbf v0.0.0-20210701015929-a3bdb1f6728e h1:BHGfBgDZ5CZlNtaMAgZjes6pP0ZpoDmPR1ePyUaI9Qk=
