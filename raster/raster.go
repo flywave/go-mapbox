@@ -16,6 +16,12 @@ import (
 	rt "github.com/flywave/go-geotiff"
 )
 
+func init() {
+	image.RegisterFormat("webp", "RIFF????WEBPVP8", webp.Decode, webp.DecodeConfig)
+	image.RegisterFormat("png", "\x89PNG\r\n\x1a\n", png.Decode, png.DecodeConfig)
+	image.RegisterFormat("jpeg", "\xff\xd8", jpeg.Decode, jpeg.DecodeConfig)
+}
+
 const (
 	DEM_ENCODING_MAPBOX    = 0
 	DEM_ENCODING_TERRARIUM = 1
@@ -34,10 +40,6 @@ type DEMData struct {
 }
 
 func LoadDEMDataWithStream(f io.Reader, encoding int) (*DEMData, error) {
-	image.RegisterFormat("webp", "RIFF????WEBPVP8", webp.Decode, webp.DecodeConfig)
-	image.RegisterFormat("png", "\x89PNG\r\n\x1a\n", png.Decode, png.DecodeConfig)
-	image.RegisterFormat("jpeg", "\xff\xd8", jpeg.Decode, jpeg.DecodeConfig)
-
 	m, _, err := image.Decode(f)
 	if err != nil {
 		return nil, err
