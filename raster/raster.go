@@ -4,6 +4,7 @@ import (
 	"errors"
 	"image"
 	"image/color"
+	"io"
 	"math"
 	"os"
 
@@ -29,11 +30,7 @@ type DEMData struct {
 	Data     [][4]byte
 }
 
-func LoadDEMData(path string, encoding int) (*DEMData, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
+func LoadDEMDataWithStream(f io.Reader, encoding int) (*DEMData, error) {
 	m, _, err := image.Decode(f)
 	if err != nil {
 		return nil, err
@@ -51,6 +48,14 @@ func LoadDEMData(path string, encoding int) (*DEMData, error) {
 		}
 	}
 	return NewDEMData(data, encoding), nil
+}
+
+func LoadDEMData(path string, encoding int) (*DEMData, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	return LoadDEMDataWithStream(f, encoding)
 }
 
 func NewDEMData(data [][4]byte, encoding int) *DEMData {
