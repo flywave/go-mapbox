@@ -114,7 +114,7 @@ func (layer *Layer) Feature() (feature *Feature, err error) {
 		if key == proto.Feature.Geometry && val == pbf.Bytes {
 			feature.GeometryPos = layer.Buf.Pos
 			size := layer.Buf.ReadVarint()
-			layer.Buf.Pos += size + 1
+			layer.Buf.Pos += size
 		}
 	}
 	feature.extent = layer.Extent

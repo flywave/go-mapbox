@@ -181,7 +181,7 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 					if key == proto.Feature.Geometry && val == pbf.Bytes {
 						feature_geometry = tile.Buf.Pos
 						size := tile.Buf.ReadVarint()
-						tile.Buf.Pos += size + 1
+						tile.Buf.Pos += size
 					}
 				}
 

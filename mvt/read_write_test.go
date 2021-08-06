@@ -10,12 +10,14 @@ import (
 	"testing"
 )
 
-var bytevals, _ = ioutil.ReadFile("../data/6_2_3.mvt")
+var bytevals, _ = ioutil.ReadFile("../data/3194.mvt")
 var tileid = m.TileID{X: 13515, Y: 6392, Z: 14}
+var bytevals2, _ = ioutil.ReadFile("../data/tile.pbf")
+var tileid2 = m.TileID{X: 1686, Y: 776, Z: 11}
 
 func TestReads(t *testing.T) {
 	feats1, _ := ReadTile(bytevals, tileid, PROTO_MAPBOX)
-	m1, m2 := map[interface{}]*geom.Feature{}, map[interface{}]*geom.Feature{}
+	m2 := map[interface{}]*geom.Feature{}
 	for _, feat := range feats1 {
 		for k, v := range feat.Properties {
 			fmt.Println(k, v)
@@ -31,26 +33,26 @@ func TestReads(t *testing.T) {
 			m2[featg.Properties["@id"]] = featg
 		}
 	}
-	if len(m2) != len(m2) {
-		t.Errorf("Map sizes are different.")
-	}
-	i := 0
-	for k := range m1 {
-		i++
-		v1, b1 := m1[k]
-		v2, b2 := m2[k]
-		if b1 && b2 {
-			err := geom.IsFeatureEqual(*v1, *v2)
-			if !err {
-				t.Errorf("freeature not eq")
-			}
-		} else {
-			t.Errorf("Both geojson features weren't in map.")
+}
+
+func TestReadsLK(t *testing.T) {
+	feats1, _ := ReadTile(bytevals2, tileid2, PROTO_LK)
+	m2 := map[interface{}]*geom.Feature{}
+	for _, feat := range feats1 {
+		for k, v := range feat.Properties {
+			fmt.Println(k, v)
 		}
-
 	}
+	tile, _ := NewTile(bytevals2, PROTO_LK)
+	for _, layer := range tile.LayerMap {
+		for layer.Next() {
+			feat, _ := layer.Feature()
+			featg, _ := feat.ToGeoJSON(tileid2)
+			delete(featg.Properties, "layer")
 
-	fmt.Printf("Lazy Reads Are Exactly the same as bulk reads for %d features in tile.\n", len(feats1))
+			m2[featg.Properties["@id"]] = featg
+		}
+	}
 }
 
 func TestReadsWrites(t *testing.T) {
