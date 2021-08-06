@@ -65,7 +65,6 @@ func (layer *LayerWrite) AddFeature(feature *geom.Feature) {
 		}
 	}
 
-	layer.count++
 	allbyte := fwriter.Finish()
 	tag := tagAndType(layer.Proto.Layer.Features, pbf.Bytes)
 	lens := pbf.EncodeVarint(uint64(len(allbyte)))

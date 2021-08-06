@@ -2,6 +2,7 @@ package mvt
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/flywave/go-geom"
@@ -11,6 +12,11 @@ func TestWriteTile(t *testing.T) {
 	feats1, _ := ReadTile(bytevals2, tileid2, PROTO_LK)
 	for _, feat := range feats1 {
 		for k, v := range feat.Properties {
+			if s, ok := v.(string); ok {
+				if strings.Contains(s, "tan zhe") {
+					fmt.Println(k, v)
+				}
+			}
 			fmt.Println(k, v)
 		}
 	}
@@ -49,6 +55,11 @@ func TestWriteLayer(t *testing.T) {
 	feats2, _ := ReadTile(data, tileid2, PROTO_MAPBOX)
 	for _, feat := range feats2 {
 		for k, v := range feat.Properties {
+			if s, ok := v.(string); ok {
+				if strings.Contains(s, "tan") {
+					fmt.Println(k, v)
+				}
+			}
 			fmt.Println(k, v)
 		}
 	}

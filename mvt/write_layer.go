@@ -26,7 +26,6 @@ type LayerWrite struct {
 	Features   []byte
 	Keys       []byte
 	Values     []byte
-	count      int
 }
 
 type Config struct {

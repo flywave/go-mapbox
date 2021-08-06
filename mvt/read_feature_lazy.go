@@ -298,12 +298,6 @@ func (feature *Feature) ToGeoJSON(tile m.TileID) (*geom.Feature, error) {
 }
 
 func convertpt(pt []float64, dim float64) []float64 {
-	if pt[0] < 0 {
-		//pt[0] = 0
-	}
-	if pt[1] < 0 {
-		//pt[1] = 0
-	}
 	return []float64{pbf.Round(pt[0]/dim, .5, 0), pbf.Round(pt[1]/dim, .5, 0)}
 }
 
