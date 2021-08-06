@@ -69,7 +69,6 @@ func (tile *Tile) NewLayer(endpos int, pt ProtoType) {
 		if key == proto.Layer.Version && val == pbf.Varint {
 			layer.Version = int(tile.Buf.ReadVarint())
 			key, val = tile.Buf.ReadTag()
-
 		}
 	}
 

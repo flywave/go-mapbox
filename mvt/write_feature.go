@@ -42,7 +42,6 @@ func (layer *LayerWrite) AddFeature(feature *geom.Feature) {
 		}
 		fwriter.WriteVarint(layer.Proto.Feature.Type, int(geomtype))
 	}
-	var abortBool bool
 	if feature.Geometry != nil {
 		switch (feature.Geometry).GetType() {
 		case "Point":
@@ -50,9 +49,6 @@ func (layer *LayerWrite) AddFeature(feature *geom.Feature) {
 			fwriter.WritePackedUInt32(layer.Proto.Feature.Geometry, layer.Cursor.Geometry)
 		case "LineString":
 			layer.Cursor.MakeLineFloat((feature.Geometry).(geom.LineString).Data())
-			if layer.Cursor.Count == 0 {
-				abortBool = true
-			}
 			fwriter.WritePackedUInt32(layer.Proto.Feature.Geometry, layer.Cursor.Geometry)
 		case "Polygon":
 			layer.Cursor.MakePolygonFloat((feature.Geometry).(geom.Polygon).Data())
@@ -69,12 +65,11 @@ func (layer *LayerWrite) AddFeature(feature *geom.Feature) {
 		}
 	}
 
-	if !abortBool {
-		allbyte := fwriter.Finish()
-		tag := tagAndType(layer.Proto.Layer.Features, pbf.Bytes)
-		lens := pbf.EncodeVarint(uint64(len(allbyte)))
-		layer.Features = append(layer.Features, appendAll([]byte{tag}, lens, allbyte)...)
-	}
+	layer.count++
+	allbyte := fwriter.Finish()
+	tag := tagAndType(layer.Proto.Layer.Features, pbf.Bytes)
+	lens := pbf.EncodeVarint(uint64(len(allbyte)))
+	layer.Features = append(layer.Features, appendAll([]byte{tag}, lens, allbyte)...)
 }
 
 func (layer *LayerWrite) AddFeatureRaw(id int, geomtype int, geometry []uint32, properties map[string]interface{}) {
