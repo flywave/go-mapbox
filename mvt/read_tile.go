@@ -98,7 +98,7 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 						keys = append(keys, tile.Buf.ReadString())
 						key, val = tile.Buf.ReadTag()
 					}
-					for key == proto.Layer.Values && val == pbf.Bytes {
+					for key == proto.Layer.Values {
 						tile.Buf.ReadVarint()
 						newkey, _ := tile.Buf.ReadTag()
 						switch newkey {

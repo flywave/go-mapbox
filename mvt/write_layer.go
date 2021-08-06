@@ -1,6 +1,8 @@
 package mvt
 
 import (
+	"reflect"
+
 	m "github.com/flywave/go-mapbox/tileid"
 
 	"github.com/flywave/go-geom"
@@ -85,9 +87,46 @@ func (layer *LayerWrite) AddKey(key string) uint32 {
 	return myint
 }
 
+func WriteValue(value interface{}, proto ProtoValue) (pbf.TagType, []byte) {
+	vv := reflect.ValueOf(value)
+	kd := vv.Kind()
+
+	switch kd {
+	case reflect.Float32:
+		return proto.FloatValue, pbf.FloatVal32(float32(vv.Float()))
+	case reflect.Float64:
+		return proto.DoubleValue, pbf.FloatVal64(float64(vv.Float()))
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return proto.IntValue, pbf.EncodeVarint_Value(uint64(vv.Int()), 32)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return proto.UIntValue, pbf.EncodeVarint_Value(uint64(vv.Uint()), 40)
+	case reflect.Bool:
+		if vv.Bool() == true {
+			return proto.BoolIntValue, []byte{1}
+		} else if vv.Bool() == false {
+			return proto.BoolIntValue, []byte{0}
+		}
+	case reflect.String:
+		if len(vv.String()) > 0 {
+			size := uint64(len(vv.String()))
+			bytevals := []byte{}
+			bytevals = append(pbf.EncodeVarint(uint64(size)), []byte(vv.String())...)
+			return proto.StringValue, bytevals
+		} else {
+			return proto.StringValue, pbf.EncodeVarint(0)
+		}
+	}
+
+	return proto.StringValue, pbf.EncodeVarint(0)
+}
+
 func (layer *LayerWrite) AddValue(value interface{}) uint32 {
 	fwriter := pbf.NewWriter()
-	fwriter.WriteValue(layer.Proto.Layer.Values, value)
+	fwriter.WriteMessage(layer.Proto.Layer.Values, func(w *pbf.Writer) {
+		tag, vals := WriteValue(value, layer.Proto.Value)
+		fwriter.WriteTag(tag, pbf.Bytes)
+		fwriter.WriteRaw(vals)
+	})
 	layer.Values = append(layer.Values, fwriter.Finish()...)
 	myint := uint32(len(layer.Values_Map))
 	layer.Values_Map[value] = myint

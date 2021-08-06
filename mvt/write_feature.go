@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/flywave/go-geom"
+	"github.com/flywave/go-geom/general"
 	"github.com/flywave/go-pbf"
 )
 
@@ -11,6 +12,10 @@ func (layer *LayerWrite) AddFeature(feature *geom.Feature) {
 	layer.RefreshCursor()
 
 	fwriter := pbf.NewWriter()
+
+	if feature.Geometry == nil {
+		feature.Geometry = general.GeometryDataAsGeometry(&feature.GeometryData)
+	}
 
 	if feature.ID != nil {
 		vv := reflect.ValueOf(feature.ID)
