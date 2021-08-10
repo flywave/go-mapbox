@@ -276,8 +276,8 @@ func (cur *Cursor) SinglePoint(point []float64) []int32 {
 	factorx := (point[0] - cur.Bounds.W) / cur.DeltaX
 	factory := (cur.Bounds.N - point[1]) / cur.DeltaY
 
-	xval := int32(factorx * float64(cur.Extent))
-	yval := int32(factory * float64(cur.Extent))
+	xval := int32(math.Round(factorx * float64(cur.Extent)))
+	yval := int32(math.Round(factory * float64(cur.Extent)))
 
 	if cur.ExtentBool {
 		if xval >= cur.Extent {
