@@ -263,17 +263,6 @@ func (cur *Cursor) MakePolygonFloat(coords [][][]float64) {
 func (cur *Cursor) SinglePoint(point []float64) []int32 {
 	point = ConvertPoint(point)
 
-	if cur.Bounds.N < point[1] {
-		cur.Bounds.N = point[1]
-	} else if cur.Bounds.S > point[1] {
-		cur.Bounds.S = point[1]
-	}
-	if cur.Bounds.E < point[0] {
-		cur.Bounds.E = point[0]
-	} else if cur.Bounds.W > point[0] {
-		cur.Bounds.W = point[0]
-	}
-
 	factorx := (point[0] - cur.Bounds.W) / cur.DeltaX
 	factory := (cur.Bounds.N - point[1]) / cur.DeltaY
 
