@@ -1,13 +1,7 @@
-package mapboxglstyle
+package style
 
-import (
-	"math"
+import "math"
 
-	"github.com/jamesrr39/ownmap-app/ownmap"
-)
-
-// functionTypeName is the implementation of the type defined here: https://docs.mapbox.com/mapbox-gl-js/style-spec/other/#function-type
-// type: identity", "exponential", "interval", or "categorical"
 type functionTypeName string
 
 const (
@@ -26,17 +20,15 @@ func getValueThroughStop(this, next, progressThroughStop float64) float64 {
 	return xProgressThrough + this
 }
 
-func getExponentialPercentage(zoomLevel, lowerStopVal, higherStopVal ownmap.ZoomLevel, base float64) float64 {
+func getExponentialPercentage(zoomLevel, lowerStopVal, higherStopVal ZoomLevel, base float64) float64 {
 	differenceBetweenLevels := float64(higherStopVal - lowerStopVal)
 	if differenceBetweenLevels == 0 {
-		// exit before we do any maths on a zero value
 		return 0
 	}
 
 	progressThroughStop := float64(zoomLevel - lowerStopVal)
 
 	if base == 1 {
-		// linear
 		return progressThroughStop / differenceBetweenLevels
 	}
 

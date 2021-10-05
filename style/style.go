@@ -2,30 +2,88 @@ package style
 
 import (
 	"encoding/json"
+	"image/color"
+	"io"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 const (
-	LayerTypeFill          = "fill"
-	LayerTypeLine          = "line"
-	LayerTypeSymbol        = "symbol"
-	LayerTypeCircle        = "circle"
-	LayerTypeFillExtrusion = "fill-extrusion"
-	LayerTypeRaster        = "raster"
-	LayerTypeBackground    = "background"
-	LayerTypeHeatMap       = "heatmap"
-	LayerTypeHillShade     = "hillshade"
-	StyleVersion           = 8
-	LayoutVisible          = "visible"
-	LayoutVisibleNone      = "none"
+	ObjectTypePoint      = "Point"
+	ObjectTypeLineString = "LineString"
+	ObjectTypePolygon    = "Polygon"
+
+	backgroundLayerID = "background"
 )
 
-const (
-	LayerMaxZoomMax = 24
-	LayerMaxZoomMin = 0
-	LayerMinZoomMax = 24
-	LayerMinZoomMin = 0
-)
+func (s *MapboxGLStyle) GetStyleID() string {
+	return s.style.ID
+}
+
+func (s *MapboxGLStyle) GetBackground() color.Color {
+	return s.backgroundColor
+}
+
+func (s *Style) calculateBackgroundColor() (color.Color, error) {
+	if len(s.Layers) == 0 {
+		return color.White, nil
+	}
+
+	backgroundLayer := s.Layers[0]
+	if backgroundLayer.ID != backgroundLayerID {
+		return color.White, nil
+	}
+
+	return backgroundLayer.Paint.BackgroundColor.GetColorAtZoomLevel(0), nil
+}
+
+type MapboxGLStyle struct {
+	style           *Style
+	backgroundColor color.Color
+}
+
+type Style struct {
+	Bearing    float64    `json:"bearing"`
+	Center     []float64  `json:"center"`
+	Glyphs     string     `json:"glyphs"`
+	Layers     []*Layer   `json:"layers"`
+	Light      Light      `json:"light"`
+	Metadata   Metadata   `json:"metadata"`
+	Name       string     `json:"name"`
+	Pitch      float64    `json:"pitch"`
+	Sources    Sources    `json:"sources"`
+	Sprite     string     `json:"sprite"`
+	Transition Transition `json:"transition"`
+	Version    int        `json:"version"`
+	Zoom       float64    `json:"zoom"`
+	ID         string     `json:"id"`
+}
+
+func Parse(reader io.Reader) (*MapboxGLStyle, error) {
+	s := new(Style)
+	dec := json.NewDecoder(reader)
+	err := dec.Decode(s)
+	if err != nil {
+		return nil, err
+	}
+
+	bgColor, err := s.calculateBackgroundColor()
+	if err != nil {
+		return nil, err
+	}
+
+	return &MapboxGLStyle{s, bgColor}, nil
+}
+
+func (s *Style) Validate() error {
+	const expectedVersion = 8
+	if s.Version != expectedVersion {
+		return errors.Errorf("version: expected %d but was %d", expectedVersion, s.Version)
+	}
+
+	return nil
+}
 
 type ListStyle struct {
 	Version  int64     `json:"version,omitempty"`
@@ -34,36 +92,4 @@ type ListStyle struct {
 	ID       string    `json:"id,omitempty"`
 	Modified time.Time `json:"modified,omitempty"`
 	Owner    string    `json:"owner,omitempty"`
-}
-
-type Light struct {
-	Anchor    string  `json:"anchor,omitempty"`
-	Color     string  `json:"color,omitempty"`
-	Intensity float64 `json:"intensity,omitempty"`
-}
-
-type Transition struct {
-	Duration int64
-	Delay    int64
-}
-
-type Style struct {
-	Version    int                        `json:"version,omitempty"`
-	Name       string                     `json:"name,omitempty"`
-	Metadata   *json.RawMessage           `json:"metadata,omitempty"`
-	Center     *[2]float64                `json:"center,omitempty"`
-	Zoom       *float64                   `json:"zoom,omitempty"`
-	Bearing    *float64                   `json:"bearing,omitempty"`
-	Pitch      *float64                   `json:"pitch,omitempty"`
-	Light      *Light                     `json:"light,omitempty"`
-	Sources    map[string]json.RawMessage `json:"sources,omitempty"`
-	Sprite     *string                    `json:"sprite,omitempty"`
-	Glyphs     *string                    `json:"glyphs,omitempty"`
-	Layers     []json.RawMessage          `json:"layers,omitempty"`
-	Transition *Transition                `json:"transition,omitempty"`
-	Created    time.Time                  `json:"created,omitempty"`
-	Id         string                     `json:"id,omitempty"`
-	Modified   time.Time                  `json:"modified,omitempty"`
-	Owner      string                     `json:"owner,omitempty"`
-	Visibility string
 }

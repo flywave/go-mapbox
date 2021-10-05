@@ -1,4 +1,4 @@
-package mapboxglstyle
+package style
 
 type Layout struct {
 	Visibility            string                       `json:"visibility"`
@@ -6,8 +6,8 @@ type Layout struct {
 	LineJoin              string                       `json:"line-join"`
 	TextField             string                       `json:"text-field"`
 	TextFont              []string                     `json:"text-font"`
-	TextSize              *NumberOrFunctionWrapperType `json:"text-size"`        // float64 or {"base": 1.4, "stops": [[10, 8], [20, 14]]}
-	SymbolPlacement       interface{}                  `json:"symbol-placement"` // string or {"base": 1, "stops": [[10, "point"], [11, "line"]]}
+	TextSize              *NumberOrFunctionWrapperType `json:"text-size"`
+	SymbolPlacement       interface{}                  `json:"symbol-placement"`
 	TextLetterSpacing     float64                      `json:"text-letter-spacing"`
 	TextRotationAlignment string                       `json:"text-rotation-alignment"`
 	TextTransform         string                       `json:"text-transform"`

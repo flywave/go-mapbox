@@ -1,18 +1,17 @@
-package mapboxglstyle
+package style
 
 import (
 	"encoding/json"
 	"math"
 
-	"github.com/jamesrr39/goutil/errorsx"
-	"github.com/jamesrr39/ownmap-app/ownmap"
+	"github.com/pkg/errors"
 )
 
 type NumberOrFunctionWrapperType struct {
 	internalType numberOfBaseAndStopsType
 }
 
-func (n *NumberOrFunctionWrapperType) GetValueAtZoomLevel(zoomLevel ownmap.ZoomLevel) float64 {
+func (n *NumberOrFunctionWrapperType) GetValueAtZoomLevel(zoomLevel ZoomLevel) float64 {
 	if n == nil || n.internalType == nil {
 		return 0
 	}
@@ -24,7 +23,7 @@ func (n *NumberOrFunctionWrapperType) UnmarshalJSON(data []byte) error {
 
 	err := json.Unmarshal(data, &i)
 	if err != nil {
-		return errorsx.Wrap(err)
+		return err
 	}
 
 	switch val := i.(type) {
@@ -35,7 +34,7 @@ func (n *NumberOrFunctionWrapperType) UnmarshalJSON(data []byte) error {
 		internalType := new(NumericFunctionType)
 		err = json.Unmarshal(data, internalType)
 		if err != nil {
-			return errorsx.Wrap(err, "data", string(data))
+			return errors.Wrap(err, string(data))
 		}
 
 		n.internalType = internalType
@@ -46,31 +45,29 @@ func (n *NumberOrFunctionWrapperType) UnmarshalJSON(data []byte) error {
 	panic("unknown type??")
 }
 
-// internalType implementations
 type plainNumberType float64
 
-func (p plainNumberType) GetValueAtZoomLevel(zoomLevel ownmap.ZoomLevel) float64 {
+func (p plainNumberType) GetValueAtZoomLevel(zoomLevel ZoomLevel) float64 {
 	return float64(p)
 }
 
 type numberOfBaseAndStopsType interface {
-	GetValueAtZoomLevel(zoomLevel ownmap.ZoomLevel) float64
+	GetValueAtZoomLevel(zoomLevel ZoomLevel) float64
 }
 
 type NumericFunctionType struct {
 	Type  functionTypeName  `json:"type"`
-	Base  *float64          `json:"base"` // the lowest value possible, if shown?
+	Base  *float64          `json:"base"`
 	Stops []numericStopType `json:"stops"`
 }
 
-func (s NumericFunctionType) GetValueAtZoomLevel(zoomLevel ownmap.ZoomLevel) float64 {
+func (s NumericFunctionType) GetValueAtZoomLevel(zoomLevel ZoomLevel) float64 {
 	stopsLen := len(s.Stops)
 	if stopsLen == 0 {
 		panic("no stops found")
 	}
 
 	if zoomLevel < s.Stops[0].ZoomLevel {
-		// too zoomed out to see this detail
 		return 0
 	}
 
@@ -84,18 +81,16 @@ func (s NumericFunctionType) GetValueAtZoomLevel(zoomLevel ownmap.ZoomLevel) flo
 		nextStop := s.Stops[i+1]
 		nextStopZoomLevel := nextStop.ZoomLevel
 		if zoomLevel >= nextStopZoomLevel {
-			// go to the next stop
 			continue
 		}
 
-		// this is the correct stop; use this one
 		return getNumericValueBetweenStops(thisStop, nextStop, zoomLevel, s.Base)
 	}
 
 	panic("shouldn't get here!")
 }
 
-func getNumericValueBetweenStops(thisStop, nextStop numericStopType, zoomLevel ownmap.ZoomLevel, base *float64) float64 {
+func getNumericValueBetweenStops(thisStop, nextStop numericStopType, zoomLevel ZoomLevel, base *float64) float64 {
 	if base == nil {
 		one := 1.0
 		base = &one

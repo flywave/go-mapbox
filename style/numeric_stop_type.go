@@ -1,14 +1,9 @@
-package mapboxglstyle
+package style
 
-import (
-	"encoding/json"
-
-	"github.com/jamesrr39/goutil/errorsx"
-	"github.com/jamesrr39/ownmap-app/ownmap"
-)
+import "encoding/json"
 
 type numericStopType struct {
-	ZoomLevel ownmap.ZoomLevel
+	ZoomLevel ZoomLevel
 	Value     float64
 }
 
@@ -18,10 +13,10 @@ func (n *numericStopType) UnmarshalJSON(data []byte) error {
 	var i internalType
 	err := json.Unmarshal(data, &i)
 	if err != nil {
-		return errorsx.Wrap(err)
+		return err
 	}
 
-	n.ZoomLevel = ownmap.ZoomLevel(i[0].(float64))
+	n.ZoomLevel = ZoomLevel(i[0].(float64))
 	n.Value = i[1].(float64)
 
 	return nil

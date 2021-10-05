@@ -1,32 +1,29 @@
-package mapboxglstyle
+package style
 
 import (
 	"encoding/json"
 	"image/color"
-
-	"github.com/jamesrr39/goutil/errorsx"
-	"github.com/jamesrr39/ownmap-app/ownmap"
 )
 
 type colorStop struct {
-	ZoomLevel ownmap.ZoomLevel
+	ZoomLevel ZoomLevel
 	Color     color.Color
 }
 
 func (c *colorStop) UnmarshalJSON(data []byte) error {
-	type colorStopJSONType [2]interface{} // float64, string
+	type colorStopJSONType [2]interface{}
 
 	var colorStopJSON colorStopJSONType
 	err := json.Unmarshal(data, &colorStopJSON)
 	if err != nil {
-		return errorsx.Wrap(err)
+		return err
 	}
 
-	zoomLevel := ownmap.ZoomLevel(colorStopJSON[0].(float64))
+	zoomLevel := ZoomLevel(colorStopJSON[0].(float64))
 	colorStr := colorStopJSON[1].(string)
 	stopColor, err := strToColor(colorStr, defaultColorAlpha)
 	if err != nil {
-		return errorsx.Wrap(err, "color", colorStr)
+		return err
 	}
 	c.ZoomLevel = zoomLevel
 	c.Color = stopColor
@@ -39,16 +36,13 @@ type ColorStopsType struct {
 	Base  *float64     `json:"base"`
 }
 
-// GetValueAtZoomLevel returns the color at a given zoom level for this item.
-// If no color (i.e. not shown), it returns nil
-func (c *ColorStopsType) GetValueAtZoomLevel(zoomLevel ownmap.ZoomLevel) color.Color {
+func (c *ColorStopsType) GetValueAtZoomLevel(zoomLevel ZoomLevel) color.Color {
 	stopsLen := len(c.Stops)
 	if stopsLen == 0 {
 		panic("found no stops")
 	}
 
 	if zoomLevel < c.Stops[0].ZoomLevel {
-		// too zoomed out to see this detail
 		return nil
 	}
 
@@ -62,11 +56,8 @@ func (c *ColorStopsType) GetValueAtZoomLevel(zoomLevel ownmap.ZoomLevel) color.C
 
 		nextStop := c.Stops[i+1]
 		if zoomLevel >= nextStop.ZoomLevel {
-			// go to the next stop
 			continue
 		}
-
-		// this is the correct stop; use this one
 
 		base := 1.0
 		if c.Base != nil {
