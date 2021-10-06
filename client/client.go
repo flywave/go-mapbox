@@ -82,7 +82,7 @@ func (c *Client) nextPageURL(header http.Header) *url.URL {
 	}
 }
 
-func (c *Client) ListStyles(draft bool) ([]style.ListStyle, error) {
+func (c *Client) ListStyles(draft bool) ([]ListStyle, error) {
 
 	url := c.baseURL
 	url.Path = path.Join(url.Path, "styles/v1/", c.username)
@@ -95,13 +95,13 @@ func (c *Client) ListStyles(draft bool) ([]style.ListStyle, error) {
 	q.Add("fresh", "true")
 	url.RawQuery = q.Encode()
 
-	var allStyles []style.ListStyle
+	var allStyles []ListStyle
 
 	requestURL := &url
 
 	for requestURL != nil {
 
-		var styles []style.ListStyle
+		var styles []ListStyle
 
 		resp, err := c.do("GET", *requestURL, nil, &styles)
 		if err != nil {

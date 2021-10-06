@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/flywave/go-mapbox/colorextra"
+	"github.com/flywave/go-mapbox/style/colorextra"
 
 	"github.com/pkg/errors"
 )
