@@ -193,13 +193,19 @@ func CreateDB(filename string, format TileFormat, description string, tilejson s
 	}
 	tx.Commit()
 
-	return db, nil
+	out := DB{
+		db:         db,
+		tileformat: format,
+		timestamp:  fileStat.ModTime().Round(time.Second),
+	}
+
+	return &out, nil
 }
 
 func (tileset *DB) StoreTile(z uint8, x uint64, y uint64, data []byte) error {
 	stmt := "INSERT OR REPLACE INTO tiles (zoom_level, tile_column, tile_row, tile_data) VALUES (?,?,?,?);"
 
-	_, err := g.DB.DB().Exec(stmt, z, x, y, data)
+	_, err := tileset.db.Exec(stmt, z, x, y, data)
 	if err != nil {
 		return err
 	}
@@ -352,15 +358,15 @@ func (tileset *DB) ReadMetadata() (map[string]interface{}, error) {
 }
 
 func (tileset *DB) UpdateMetadata(values map[string]string) error {
-	sqlStmt = `
+	sqlStmt := `
 	DELETE FROM metadata;
 	`
-	_, err = db.Exec(sqlStmt)
+	_, err := tileset.db.Exec(sqlStmt)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	tx, err := db.Begin()
+	tx, err := tileset.db.Begin()
 	if err != nil {
 		return err
 	}
