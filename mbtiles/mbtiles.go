@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -126,6 +127,84 @@ func NewDB(filename string) (*DB, error) {
 
 	return &out, nil
 
+}
+
+func CreateDB(filename string, format TileFormat, description string, tilejson string) (*DB, error) {
+	_, id := filepath.Split(filename)
+	id = strings.Split(id, ".")[0]
+
+	db, err := sql.Open("sqlite3", filename)
+	if err != nil {
+		return nil, err
+	}
+
+	fileStat, err := os.Stat(filename)
+	if err != nil {
+		return nil, fmt.Errorf("could not read file stats for mbtiles file: %s\n", filename)
+	}
+
+	sqlStmt := `
+	CREATE TABLE tiles (zoom_level integer, tile_column integer, tile_row integer, tile_data blob);
+	`
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		return nil, err
+	}
+
+	sqlStmt = `CREATE UNIQUE INDEX idx_tile on tiles
+	(zoom_level, tile_column, tile_row);`
+
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		return nil, err
+	}
+
+	sqlStmt = `
+	CREATE TABLE metadata (name text, value text);
+	`
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		return nil, err
+	}
+
+	values := [][]string{{"name", filename},
+		{"type", "overlay"},
+		{"version", "2"},
+		{"description", description},
+		{"format", format.String()},
+		{"json", tilejson},
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	stmt, err := tx.Prepare("insert into metadata(value, name) values(?, ?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, i := range values {
+		_, err = stmt.Exec(i[1], i[0])
+		if err != nil {
+			return nil, err
+		}
+	}
+	tx.Commit()
+
+	return db, nil
+}
+
+func (tileset *DB) StoreTile(z uint8, x uint64, y uint64, data []byte) error {
+	stmt := "INSERT OR REPLACE INTO tiles (zoom_level, tile_column, tile_row, tile_data) VALUES (?,?,?,?);"
+
+	_, err := g.DB.DB().Exec(stmt, z, x, y, data)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (tileset *DB) ReadTile(z uint8, x uint64, y uint64, data *[]byte) error {
@@ -270,6 +349,35 @@ func (tileset *DB) ReadMetadata() (map[string]interface{}, error) {
 		metadata["maxzoom"] = maxZoom
 	}
 	return metadata, nil
+}
+
+func (tileset *DB) UpdateMetadata(values map[string]string) error {
+	sqlStmt = `
+	DELETE FROM metadata;
+	`
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare("insert into metadata(value, name) values(?, ?)")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, i := range values {
+		_, err = stmt.Exec(i[1], i[0])
+		if err != nil {
+			return err
+		}
+	}
+	tx.Commit()
+	return nil
 }
 
 func (tileset *DB) TileFormat() TileFormat {
