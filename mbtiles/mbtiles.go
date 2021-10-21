@@ -81,7 +81,6 @@ var layerTypeStrings = [...]string{
 	"overlay",
 }
 
-// String returns a string representing the LayerType
 func (t LayerType) String() string {
 	return layerTypeStrings[t]
 }
@@ -191,7 +190,7 @@ func NewDB(filename string) (*DB, error) {
 
 }
 
-func CreateDB(filename string, format TileFormat, description string, tilejson string) (*DB, error) {
+func CreateDB(filename string, format TileFormat, md *Metadata) (*DB, error) {
 	db, err := sql.Open("sqlite3", filename)
 	if err != nil {
 		return nil, err
@@ -221,32 +220,6 @@ func CreateDB(filename string, format TileFormat, description string, tilejson s
 		return nil, err
 	}
 
-	values := [][]string{{"name", filename},
-		{"type", "overlay"},
-		{"version", "2"},
-		{"description", description},
-		{"format", format.String()},
-		{"json", tilejson},
-	}
-
-	tx, err := db.Begin()
-	if err != nil {
-		return nil, err
-	}
-
-	stmt, err := tx.Prepare("insert into metadata(value, name) values(?, ?)")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, i := range values {
-		_, err = stmt.Exec(i[1], i[0])
-		if err != nil {
-			return nil, err
-		}
-	}
-	tx.Commit()
-
 	fileStat, err := os.Stat(filename)
 	if err != nil {
 		return nil, fmt.Errorf("could not read file stats for mbtiles file: %s", filename)
@@ -256,6 +229,10 @@ func CreateDB(filename string, format TileFormat, description string, tilejson s
 		db:         db,
 		tileformat: format,
 		timestamp:  fileStat.ModTime().Round(time.Second),
+	}
+
+	if md != nil {
+		out.UpdateMetadata(md)
 	}
 
 	return &out, nil

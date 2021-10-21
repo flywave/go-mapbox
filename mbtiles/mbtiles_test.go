@@ -46,7 +46,7 @@ func Test_TileFormat_ContentType(t *testing.T) {
 }
 
 func TestWriteMBTiles(t *testing.T) {
-	db, err := CreateDB("./test.mbtils", PNG, "", "")
+	db, err := CreateDB("./test.mbtils", PNG, nil)
 
 	if err != nil {
 		t.FailNow()
