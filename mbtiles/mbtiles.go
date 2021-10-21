@@ -11,9 +11,7 @@ import (
 	"io"
 	"log"
 	"os"
-	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -30,6 +28,16 @@ const (
 	PBF
 	WEBP
 )
+
+var formatStrings = [...]string{
+	"",
+	"pbf",
+	"png",
+	"jpg",
+	"webp",
+	"gzib",
+	"zlib",
+}
 
 func (t TileFormat) String() string {
 	switch t {
@@ -61,8 +69,65 @@ func (t TileFormat) ContentType() string {
 	}
 }
 
+type LayerType int
+
+const (
+	BaseLayer LayerType = iota
+	Overlay
+)
+
+var layerTypeStrings = [...]string{
+	"baselayer",
+	"overlay",
+}
+
+// String returns a string representing the LayerType
+func (t LayerType) String() string {
+	return layerTypeStrings[t]
+}
+
+func (t *LayerType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.String())
+}
+
+func (t *LayerType) UnmarshalJSON(b []byte) error {
+	var lt string
+
+	if err := json.Unmarshal(b, &lt); err != nil {
+		return err
+	}
+
+	for i, k := range layerTypeStrings {
+		if k == lt {
+			*t = LayerType(i)
+			return nil
+		}
+	}
+
+	return errors.New("invalid or unknown tile format")
+}
+
+func stringToLayerType(s string) LayerType {
+	for i, k := range layerTypeStrings {
+		if k == s {
+			return LayerType(i)
+		}
+	}
+
+	return BaseLayer
+}
+
+func layerTypeToString(s LayerType) string {
+	switch s {
+	case BaseLayer:
+		return "baselayer"
+	case Overlay:
+		return "overlay"
+	}
+	return ""
+}
+
 type DB struct {
-	filename           string
 	db                 *sql.DB
 	tileformat         TileFormat
 	timestamp          time.Time
@@ -71,9 +136,6 @@ type DB struct {
 }
 
 func NewDB(filename string) (*DB, error) {
-	_, id := filepath.Split(filename)
-	id = strings.Split(id, ".")[0]
-
 	db, err := sql.Open("sqlite3", filename)
 	if err != nil {
 		return nil, err
@@ -81,7 +143,7 @@ func NewDB(filename string) (*DB, error) {
 
 	fileStat, err := os.Stat(filename)
 	if err != nil {
-		return nil, fmt.Errorf("could not read file stats for mbtiles file: %s\n", filename)
+		return nil, fmt.Errorf("could not read file stats for mbtiles file: %s", filename)
 	}
 
 	var data []byte
@@ -130,9 +192,6 @@ func NewDB(filename string) (*DB, error) {
 }
 
 func CreateDB(filename string, format TileFormat, description string, tilejson string) (*DB, error) {
-	_, id := filepath.Split(filename)
-	id = strings.Split(id, ".")[0]
-
 	db, err := sql.Open("sqlite3", filename)
 	if err != nil {
 		return nil, err
@@ -190,7 +249,7 @@ func CreateDB(filename string, format TileFormat, description string, tilejson s
 
 	fileStat, err := os.Stat(filename)
 	if err != nil {
-		return nil, fmt.Errorf("could not read file stats for mbtiles file: %s\n", filename)
+		return nil, fmt.Errorf("could not read file stats for mbtiles file: %s", filename)
 	}
 
 	out := DB{
@@ -227,7 +286,7 @@ func (tileset *DB) ReadTile(z uint8, x uint64, y uint64, data *[]byte) error {
 
 func (tileset *DB) ReadGrid(z uint8, x uint64, y uint64, data *[]byte) error {
 	if !tileset.hasUTFGrid {
-		return errors.New("Tileset does not contain UTFgrids")
+		return errors.New("tileset does not contain UTFgrids")
 	}
 
 	err := tileset.db.QueryRow("select grid from grids where zoom_level = ? and tile_column = ? and tile_row = ?", z, x, y).Scan(data)
@@ -306,36 +365,69 @@ func (tileset *DB) ReadGrid(z uint8, x uint64, y uint64, data *[]byte) error {
 	return nil
 }
 
-func (tileset *DB) ReadMetadata() (*Metadata, error) {
-	var (
-		key   string
-		value string
-	)
-	metadata := make(map[string]string)
+func (ts *DB) GetMetadata() (*Metadata, error) {
+	md := &Metadata{}
 
-	rows, err := tileset.db.Query("select * from metadata where value is not ''")
+	rows, err := ts.db.Query("SELECT * FROM metadata WHERE value is not ''")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
+	var key, value string
 	for rows.Next() {
-		rows.Scan(&key, &value)
-		metadata[key] = value
-	}
+		if err := rows.Scan(&key, &value); err != nil {
+			return nil, err
+		}
 
-	_, hasMinZoom := metadata["minzoom"]
-	_, hasMaxZoom := metadata["maxzoom"]
-	if !(hasMinZoom && hasMaxZoom) {
-		var minZoom, maxZoom int
-		err := tileset.db.QueryRow("select min(zoom_level), max(zoom_level) from tiles").Scan(&minZoom, &maxZoom)
+		switch key {
+		case "name":
+			md.Name = value
+		case "description":
+			md.Description = value
+		case "attribution":
+			md.Attribution = value
+		case "version":
+			md.Version = value
+		case "format":
+			md.Format = stringToTileFormat(value)
+		case "minzoom":
+			md.MinZoom, err = strconv.Atoi(value)
+		case "maxzoom":
+			md.MaxZoom, err = strconv.Atoi(value)
+		case "center":
+			md.Center, err = stringToCenter(value)
+		case "bounds":
+			md.Bounds, err = stringToBounds(value)
+		case "type":
+			md.Type = stringToLayerType(value)
+		case "json":
+			err = json.Unmarshal([]byte(value), &md.LayerData)
+		}
+
 		if err != nil {
 			return nil, err
 		}
-		metadata["minzoom"] = strconv.Itoa(minZoom)
-		metadata["maxzoom"] = strconv.Itoa(maxZoom)
 	}
-	return NewMetadata(metadata), nil
+
+	if md.MaxZoom == 0 {
+		var min, max string
+		if err := ts.db.QueryRow("SELECT min(zoom_level), max(zoom_level) FROM tiles").Scan(&min, &max); err != nil {
+			return nil, err
+		}
+
+		md.MinZoom, err = strconv.Atoi(min)
+		if err != nil {
+			return nil, err
+		}
+
+		md.MaxZoom, err = strconv.Atoi(max)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return md, nil
 }
 
 func (tileset *DB) UpdateMetadata(md *Metadata) error {
@@ -412,18 +504,5 @@ func detectTileFormat(data *[]byte) (TileFormat, error) {
 		}
 	}
 
-	return UNKNOWN, errors.New("Could not detect tile format")
-}
-
-func stringToFloats(str string) ([]float64, error) {
-	split := strings.Split(str, ",")
-	var out []float64
-	for _, v := range split {
-		value, err := strconv.ParseFloat(strings.TrimSpace(v), 64)
-		if err != nil {
-			return out, fmt.Errorf("could not parse %q to floats: %v", str, err)
-		}
-		out = append(out, value)
-	}
-	return out, nil
+	return UNKNOWN, errors.New("could not detect tile format")
 }
