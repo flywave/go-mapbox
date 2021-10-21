@@ -39,7 +39,7 @@ func (m *Metadata) ToMap() map[string]string {
 
 	if m.LayerData != nil {
 		data, _ := json.Marshal(m.LayerData)
-		ret["json"] = string(data)
+		ret["layerData"] = string(data)
 	}
 	return ret
 }
