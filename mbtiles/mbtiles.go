@@ -306,12 +306,12 @@ func (tileset *DB) ReadGrid(z uint8, x uint64, y uint64, data *[]byte) error {
 	return nil
 }
 
-func (tileset *DB) ReadMetadata() (map[string]interface{}, error) {
+func (tileset *DB) ReadMetadata() (*Metadata, error) {
 	var (
 		key   string
 		value string
 	)
-	metadata := make(map[string]interface{})
+	metadata := make(map[string]string)
 
 	rows, err := tileset.db.Query("select * from metadata where value is not ''")
 	if err != nil {
@@ -321,26 +321,7 @@ func (tileset *DB) ReadMetadata() (map[string]interface{}, error) {
 
 	for rows.Next() {
 		rows.Scan(&key, &value)
-
-		switch key {
-		case "maxzoom", "minzoom":
-			metadata[key], err = strconv.Atoi(value)
-			if err != nil {
-				return nil, fmt.Errorf("cannot read metadata item %s: %v", key, err)
-			}
-		case "bounds", "center":
-			metadata[key], err = stringToFloats(value)
-			if err != nil {
-				return nil, fmt.Errorf("cannot read metadata item %s: %v", key, err)
-			}
-		case "json":
-			err = json.Unmarshal([]byte(value), &metadata)
-			if err != nil {
-				return nil, fmt.Errorf("unable to parse JSON metadata item: %v", err)
-			}
-		default:
-			metadata[key] = value
-		}
+		metadata[key] = value
 	}
 
 	_, hasMinZoom := metadata["minzoom"]
@@ -349,15 +330,15 @@ func (tileset *DB) ReadMetadata() (map[string]interface{}, error) {
 		var minZoom, maxZoom int
 		err := tileset.db.QueryRow("select min(zoom_level), max(zoom_level) from tiles").Scan(&minZoom, &maxZoom)
 		if err != nil {
-			return metadata, nil
+			return nil, err
 		}
 		metadata["minzoom"] = minZoom
 		metadata["maxzoom"] = maxZoom
 	}
-	return metadata, nil
+	return NewMetadata(metadata), nil
 }
 
-func (tileset *DB) UpdateMetadata(values map[string]string) error {
+func (tileset *DB) UpdateMetadata(md *Metadata) error {
 	sqlStmt := `
 	DELETE FROM metadata;
 	`
@@ -375,6 +356,8 @@ func (tileset *DB) UpdateMetadata(values map[string]string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	values := md.ToMap()
 
 	for _, i := range values {
 		_, err = stmt.Exec(i[1], i[0])

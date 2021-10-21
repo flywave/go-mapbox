@@ -1,5 +1,7 @@
 package mbtiles
 
+import "encoding/json"
+
 type Metadata struct {
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
@@ -11,6 +13,87 @@ type Metadata struct {
 	Type        string `json:"type,omitempty"`
 	Format      string `json:"format,omitempty"`
 	Json        string `json:"json,omitempty"`
+}
+
+func NewMetadata(md map[string]string) *Metadata {
+	ret = &Metadata{}
+	if v, ok := md["name"]; ok {
+		ret.Name = v
+	}
+	if v, ok := md["description"]; ok {
+		ret.Description = v
+	}
+	if v, ok := md["version"]; ok {
+		ret.Version = v
+	}
+	if v, ok := md["minzoom"]; ok {
+		ret.Minzoom = v
+	}
+	if v, ok := md["maxzoom"]; ok {
+		ret.Maxzoom = v
+	}
+	if v, ok := md["center"]; ok {
+		ret.Center = v
+	}
+	if v, ok := md["bounds"]; ok {
+		ret.Bounds = v
+	}
+	if v, ok := md["type"]; ok {
+		ret.Type = v
+	}
+	if v, ok := md["format"]; ok {
+		ret.Format = v
+	}
+	if v, ok := md["json"]; ok {
+		ret.Json = v
+	}
+	return ret
+}
+
+func (m *Metadata) ToMap() map[string]string {
+	ret := make(map[string]string)
+	if ret.Name != "" {
+		ret["name"] = m.Name
+	}
+	if ret.Description != "" {
+		ret["description"] = m.Description
+	}
+	if ret.Minzoom != "" {
+		ret["minzoom"] = m.Minzoom
+	}
+	if ret.Maxzoom != "" {
+		ret["maxzoom"] = m.Maxzoom
+	}
+	if ret.Center != "" {
+		ret["center"] = m.Center
+	}
+	if ret.Bounds != "" {
+		ret["bounds"] = m.Bounds
+	}
+	if ret.Type != "" {
+		ret["type"] = m.Type
+	}
+	if ret.Format != "" {
+		ret["format"] = m.Format
+	}
+	if ret.Json != "" {
+		ret["json"] = m.Json
+	}
+	return ret
+}
+
+func (m *Metadata) SetMetadataJson(md *MetadataJson) {
+	data, _ := json.Marshal(md)
+	m.Json = string(data)
+}
+
+func (m *Metadata) GetMetadataJson() *MetadataJson {
+	if m.Json != "" {
+		var ret *MetadataJson
+		_ := json.Unmarshal([]byte(m.Json), ret)
+		return ret
+	}
+	return nil
 }
 
 type MetadataJson struct {
