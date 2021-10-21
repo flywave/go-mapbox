@@ -1,6 +1,7 @@
 package mbtiles
 
 import (
+	"os"
 	"testing"
 )
 
@@ -42,4 +43,18 @@ func Test_TileFormat_ContentType(t *testing.T) {
 			t.Errorf("%q.ContentType() => %q, expected %q", condition.in, condition.in.ContentType(), condition.out)
 		}
 	}
+}
+
+func TestWriteMBTiles(t *testing.T) {
+	db, err := CreateDB("./test.mbtils", PNG, "", "")
+
+	if err != nil {
+		t.FailNow()
+	}
+
+	db.StoreTile(0, 0, 0, []byte("test"))
+
+	db.Close()
+
+	os.Remove("./test.mbtils")
 }

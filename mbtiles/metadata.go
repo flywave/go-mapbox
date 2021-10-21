@@ -16,7 +16,7 @@ type Metadata struct {
 }
 
 func NewMetadata(md map[string]string) *Metadata {
-	ret = &Metadata{}
+	ret := &Metadata{}
 	if v, ok := md["name"]; ok {
 		ret.Name = v
 	}
@@ -52,31 +52,31 @@ func NewMetadata(md map[string]string) *Metadata {
 
 func (m *Metadata) ToMap() map[string]string {
 	ret := make(map[string]string)
-	if ret.Name != "" {
+	if m.Name != "" {
 		ret["name"] = m.Name
 	}
-	if ret.Description != "" {
+	if m.Description != "" {
 		ret["description"] = m.Description
 	}
-	if ret.Minzoom != "" {
+	if m.Minzoom != "" {
 		ret["minzoom"] = m.Minzoom
 	}
-	if ret.Maxzoom != "" {
+	if m.Maxzoom != "" {
 		ret["maxzoom"] = m.Maxzoom
 	}
-	if ret.Center != "" {
+	if m.Center != "" {
 		ret["center"] = m.Center
 	}
-	if ret.Bounds != "" {
+	if m.Bounds != "" {
 		ret["bounds"] = m.Bounds
 	}
-	if ret.Type != "" {
+	if m.Type != "" {
 		ret["type"] = m.Type
 	}
-	if ret.Format != "" {
+	if m.Format != "" {
 		ret["format"] = m.Format
 	}
-	if ret.Json != "" {
+	if m.Json != "" {
 		ret["json"] = m.Json
 	}
 	return ret
@@ -90,7 +90,7 @@ func (m *Metadata) SetMetadataJson(md *MetadataJson) {
 func (m *Metadata) GetMetadataJson() *MetadataJson {
 	if m.Json != "" {
 		var ret *MetadataJson
-		_ := json.Unmarshal([]byte(m.Json), ret)
+		json.Unmarshal([]byte(m.Json), ret)
 		return ret
 	}
 	return nil

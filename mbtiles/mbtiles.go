@@ -138,11 +138,6 @@ func CreateDB(filename string, format TileFormat, description string, tilejson s
 		return nil, err
 	}
 
-	fileStat, err := os.Stat(filename)
-	if err != nil {
-		return nil, fmt.Errorf("could not read file stats for mbtiles file: %s\n", filename)
-	}
-
 	sqlStmt := `
 	CREATE TABLE tiles (zoom_level integer, tile_column integer, tile_row integer, tile_data blob);
 	`
@@ -192,6 +187,11 @@ func CreateDB(filename string, format TileFormat, description string, tilejson s
 		}
 	}
 	tx.Commit()
+
+	fileStat, err := os.Stat(filename)
+	if err != nil {
+		return nil, fmt.Errorf("could not read file stats for mbtiles file: %s\n", filename)
+	}
 
 	out := DB{
 		db:         db,
@@ -332,8 +332,8 @@ func (tileset *DB) ReadMetadata() (*Metadata, error) {
 		if err != nil {
 			return nil, err
 		}
-		metadata["minzoom"] = minZoom
-		metadata["maxzoom"] = maxZoom
+		metadata["minzoom"] = strconv.Itoa(minZoom)
+		metadata["maxzoom"] = strconv.Itoa(maxZoom)
 	}
 	return NewMetadata(metadata), nil
 }
