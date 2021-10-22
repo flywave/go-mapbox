@@ -14,6 +14,8 @@ const (
 
 	RES_FACTOR_SQRT2 = "sqrt2"
 	RES_FACTOR_2     = float64(2.0)
+
+	METADATA_JSON = "metadata.json"
 )
 
 type Metadata struct {
