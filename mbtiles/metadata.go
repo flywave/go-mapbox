@@ -6,18 +6,34 @@ import (
 	"strings"
 )
 
+const (
+	ORIGIN_UL = "ul"
+	ORIGIN_LL = "ll"
+	ORIGIN_NW = "nw"
+	ORIGIN_SW = "sw"
+
+	RES_FACTOR_SQRT2 = "sqrt2"
+	RES_FACTOR_2     = float64(2.0)
+)
+
 type Metadata struct {
-	Name        string     `json:"name"`
-	Format      TileFormat `json:"format"`
-	Bounds      [4]float64 `json:"bounds,omitempty"`
-	Center      [3]float64 `json:"center,omitempty"`
-	MinZoom     int        `json:"minzoom,omitempty"`
-	MaxZoom     int        `json:"maxzoom,omitempty"`
-	Description string     `json:"description,omitempty"`
-	Version     string     `json:"version,omitempty"`
-	Type        LayerType  `json:"type,omitempty"`
-	Attribution string     `json:"attribution,omitempty"`
-	LayerData   *LayerData `json:"layerData,omitempty"`
+	Name            string      `json:"name"`
+	Format          TileFormat  `json:"format"`
+	Bounds          [4]float64  `json:"bounds,omitempty"`
+	Center          [3]float64  `json:"center,omitempty"`
+	MinZoom         int         `json:"minzoom,omitempty"`
+	MaxZoom         int         `json:"maxzoom,omitempty"`
+	Description     string      `json:"description,omitempty"`
+	Version         string      `json:"version,omitempty"`
+	Type            LayerType   `json:"type,omitempty"`
+	Attribution     string      `json:"attribution,omitempty"`
+	LayerData       *LayerData  `json:"json,omitempty"`
+	DirectoryLayout string      `json:"directory_layout,omitempty"`
+	Origin          string      `json:"origin,omitempty"`
+	Srs             string      `json:"srs,omitempty"`
+	BoundsSrs       string      `json:"bounds_srs,omitempty"`
+	ResFactor       interface{} `json:"res_factor,omitempty"`
+	TileSize        *[2]int     `json:"tile_size,omitempty"`
 }
 
 func (m *Metadata) ToMap() map[string]string {
@@ -39,7 +55,31 @@ func (m *Metadata) ToMap() map[string]string {
 
 	if m.LayerData != nil {
 		data, _ := json.Marshal(m.LayerData)
-		ret["layerData"] = string(data)
+		ret["json"] = string(data)
+	}
+
+	if m.DirectoryLayout != "" {
+		ret["directory_layout"] = m.DirectoryLayout
+	}
+
+	if m.Origin != "" {
+		ret["origin"] = m.Origin
+	}
+
+	if m.Srs != "" {
+		ret["srs"] = m.Srs
+	}
+
+	if m.BoundsSrs != "" {
+		ret["bounds_srs"] = m.BoundsSrs
+	}
+
+	if m.ResFactor != nil {
+		ret["res_factor"] = resFactorToString(m.ResFactor)
+	}
+
+	if m.TileSize != nil {
+		ret["tile_size"] = tileSizeToString(*m.TileSize)
 	}
 	return ret
 }
@@ -123,4 +163,47 @@ func centerToString(center [3]float64) (str string, err error) {
 		elem = append(elem, s)
 	}
 	return strings.Join(elem, ","), nil
+}
+
+func resFactorToString(fac interface{}) string {
+	switch v := fac.(type) {
+	case string:
+		return v
+	case float64:
+		s := strconv.FormatFloat(v, 'f', 8, 64)
+		return s
+	}
+	return ""
+}
+
+func stringToResFactor(fac string) interface{} {
+	if fac == "sqrt2" {
+		return fac
+	} else {
+		f, err := strconv.ParseFloat(strings.TrimSpace(fac), 64)
+		if err != nil {
+			return nil
+		}
+		return f
+	}
+}
+
+func tileSizeToString(ts [2]int) string {
+	elem := []string{}
+	for i := range ts {
+		s := strconv.Itoa(ts[i])
+		elem = append(elem, s)
+	}
+	return strings.Join(elem, ",")
+}
+
+func stringToTileSize(str string) (tilesize *[2]int, err error) {
+	tilesize = new([2]int)
+	for i, v := range strings.Split(str, ",") {
+		var i64 int64
+		i64, err = strconv.ParseInt(strings.TrimSpace(v), 10, 64)
+		tilesize[i] = int(i64)
+	}
+
+	return
 }

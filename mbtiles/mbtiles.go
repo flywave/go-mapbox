@@ -380,6 +380,18 @@ func (ts *DB) GetMetadata() (*Metadata, error) {
 			md.Type = stringToLayerType(value)
 		case "json":
 			err = json.Unmarshal([]byte(value), &md.LayerData)
+		case "directory_layout":
+			md.DirectoryLayout = value
+		case "origin":
+			md.Origin = value
+		case "srs":
+			md.Srs = value
+		case "bounds_srs":
+			md.BoundsSrs = value
+		case "res_factor":
+			md.ResFactor = stringToResFactor(value)
+		case "tile_size":
+			md.TileSize, err = stringToTileSize(value)
 		}
 
 		if err != nil {
