@@ -16,6 +16,13 @@ const (
 	RES_FACTOR_2     = float64(2.0)
 
 	METADATA_JSON = "metadata.json"
+
+	DEFAULT_DIRECTORY_LAYOUT = "reverse_tms"
+	DEFAULT_ORIGIN           = "ul"
+	DEFAULT_SRS              = "EPSG:3857"
+	DEFAULT_BOUNDS_SRS       = "EPSG:3857"
+	DEFAULT_RES_FACTOR       = RES_FACTOR_2
+	DEFAULT_TILE_SIZE        = 256
 )
 
 type Metadata struct {
