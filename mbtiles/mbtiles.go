@@ -440,8 +440,8 @@ func (tileset *DB) UpdateMetadata(md *Metadata) error {
 
 	values := md.ToMap()
 
-	for _, i := range values {
-		_, err = stmt.Exec(i[1], i[0])
+	for k, v := range values {
+		_, err = stmt.Exec(k, v)
 		if err != nil {
 			return err
 		}
