@@ -345,7 +345,7 @@ func (tileset *DB) ReadGrid(z uint8, x uint64, y uint64, data *[]byte) error {
 func (ts *DB) GetMetadata() (*Metadata, error) {
 	md := &Metadata{}
 
-	rows, err := ts.db.Query("SELECT * FROM metadata WHERE value is not ''")
+	rows, err := ts.db.Query("SELECT name, value FROM metadata WHERE value is not ''")
 	if err != nil {
 		return nil, err
 	}
