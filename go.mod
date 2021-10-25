@@ -8,6 +8,7 @@ require (
 	github.com/flywave/go-geom v0.0.0-20210705081559-eee15cf4b503
 	github.com/flywave/go-geotiff v0.0.0-20210730100939-aadf13b7cc54
 	github.com/flywave/go-pbf v0.0.0-20210701015929-a3bdb1f6728e
+	github.com/flywave/go-quantized-mesh v0.0.0-20210525134750-cb854922974d // indirect
 	github.com/flywave/imaging v1.6.5
 	github.com/go-courier/reflectx v1.3.4
 	github.com/golang/protobuf v1.5.2

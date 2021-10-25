@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"compress/zlib"
 	"database/sql"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,6 +14,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	qmt "github.com/flywave/go-quantized-mesh"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -27,6 +30,9 @@ const (
 	JPG
 	PBF
 	WEBP
+	LERC
+	TIFF
+	TERRAIN
 )
 
 var formatStrings = [...]string{
@@ -37,6 +43,9 @@ var formatStrings = [...]string{
 	"webp",
 	"gzib",
 	"zlib",
+	"lerc",
+	"tiff",
+	"terrain",
 }
 
 func (t TileFormat) String() string {
@@ -49,6 +58,12 @@ func (t TileFormat) String() string {
 		return "pbf"
 	case WEBP:
 		return "webp"
+	case LERC:
+		return "lerc"
+	case TIFF:
+		return "tiff"
+	case TERRAIN:
+		return "terrain"
 	default:
 		return ""
 	}
@@ -64,6 +79,12 @@ func (t TileFormat) ContentType() string {
 		return "application/x-protobuf"
 	case WEBP:
 		return "image/webp"
+	case LERC:
+		return "image/lerc"
+	case TIFF:
+		return "image/tiff"
+	case TERRAIN:
+		return "application/vnd.quantized-mesh"
 	default:
 		return ""
 	}
@@ -479,18 +500,37 @@ func (tileset *DB) Close() error {
 }
 
 func detectTileFormat(data *[]byte) (TileFormat, error) {
-	patterns := map[TileFormat][]byte{
-		GZIP: []byte("\x1f\x8b"),
-		ZLIB: []byte("\x78\x9c"),
-		PNG:  []byte("\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"),
-		JPG:  []byte("\xFF\xD8\xFF"),
-		WEBP: []byte("\x52\x49\x46\x46\xc0\x00\x00\x00\x57\x45\x42\x50\x56\x50"),
+	patterns := map[TileFormat][][]byte{
+		GZIP: {[]byte("\x1f\x8b")},
+		ZLIB: {[]byte("\x78\x9c")},
+		PNG:  {[]byte("\x89\x50\x4E\x47\x0D\x0A\x1A\x0A")},
+		JPG:  {[]byte("\xFF\xD8\xFF")},
+		WEBP: {[]byte("\x52\x49\x46\x46\xc0\x00\x00\x00\x57\x45\x42\x50\x56\x50")},
+		LERC: {[]byte("\x43\x6E\x74\x5A\x49\x6D\x61\x67\x65\x20"), []byte("\x4C\x65\x72\x63\x32\x20")},
+		TIFF: {[]byte("\x4D\x4D"), []byte("\x49\x49")},
 	}
 
 	for format, pattern := range patterns {
-		if bytes.HasPrefix(*data, pattern) {
-			return format, nil
+		for _, p := range pattern {
+			if bytes.HasPrefix(*data, p) {
+				return format, nil
+			}
 		}
+	}
+
+	var (
+		byteOrder = binary.LittleEndian
+	)
+
+	var header qmt.QuantizedMeshHeader
+
+	err := binary.Read(bytes.NewBuffer(*data), byteOrder, &header)
+	if err != nil {
+		return UNKNOWN, err
+	}
+
+	if header.CenterX == header.BoundingSphereCenterX && header.CenterY == header.BoundingSphereCenterY && header.CenterZ == header.BoundingSphereCenterZ {
+		return TERRAIN, err
 	}
 
 	return UNKNOWN, errors.New("could not detect tile format")
