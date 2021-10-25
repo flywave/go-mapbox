@@ -17,7 +17,7 @@ const (
 
 	METADATA_JSON = "metadata.json"
 
-	DEFAULT_DIRECTORY_LAYOUT = "reverse_tms"
+	DEFAULT_DIRECTORY_LAYOUT = "tms"
 	DEFAULT_ORIGIN           = "ul"
 	DEFAULT_SRS              = "EPSG:3857"
 	DEFAULT_BOUNDS_SRS       = "EPSG:3857"
