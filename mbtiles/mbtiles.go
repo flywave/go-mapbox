@@ -433,7 +433,7 @@ func (tileset *DB) UpdateMetadata(md *Metadata) error {
 		return err
 	}
 
-	stmt, err := tx.Prepare("insert into metadata(value, name) values(?, ?)")
+	stmt, err := tx.Prepare("insert into metadata(name, value) values(?, ?)")
 	if err != nil {
 		log.Fatal(err)
 	}
