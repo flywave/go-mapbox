@@ -185,11 +185,28 @@ func assert_winding_order(coord [][]int32, exp_orient string) [][]int32 {
 	}
 }
 
+func SignedArea2(ring [][]int32) float64 {
+	sum := int32(0)
+	weight := 0.0
+	lenn := len(ring)
+	j := lenn - 1
+	var p1, p2 []int32
+
+	for i < lenn {
+		if i != 0 {
+			j = i - 1
+		}
+		p1 = ring[i]
+		p2 = ring[j]
+		weight += float64(p2[0]-p1[0]) * (p1[1] + p2[1])
+		i++
+	}
+	return weight
+}
+
 func (cur *Cursor) AssertConvert(coord [][]float64, exp_orient string) {
 	count := 0
 	firstpt := cur.SinglePoint(coord[0])
-	weight := 0.0
-	var oldpt []int32
 	newlist := make([][]int32, len(coord))
 	newlist[0] = firstpt
 	for pos, floatpt := range coord[1:] {
@@ -197,14 +214,12 @@ func (cur *Cursor) AssertConvert(coord [][]float64, exp_orient string) {
 		newlist[pos+1] = pt
 		if count == 0 {
 			count = 1
-		} else {
-			weight += float64((pt[0] - oldpt[0]) * (pt[1] + oldpt[1]))
 		}
-		oldpt = pt
 	}
 
-	weight += float64((firstpt[0] - oldpt[0]) * (firstpt[1] + oldpt[1]))
 	var orientation string
+
+	weight := SignedArea2(newlist)
 	if weight > 0 {
 		orientation = "clockwise"
 	} else {
@@ -221,7 +236,6 @@ func (cur *Cursor) AssertConvert(coord [][]float64, exp_orient string) {
 	newgeom = append(newgeom, closePath(1))
 	cur.Geometry = append(cur.Geometry, newgeom...)
 	cur.LastPoint = newlist[len(newlist)-1]
-
 }
 
 func (cur *Cursor) MakePolygon(coords [][][]int32) []uint32 {
