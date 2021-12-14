@@ -154,7 +154,7 @@ func (feature *Feature) LoadGeometry() (geomm *geom.GeometryData, err error) {
 	for pos < len(geom_) {
 		if geom_[pos] == 9 {
 			pos += 1
-			if pos != 1 && geomType == 2 {
+			if pos != 1 && (geomType == 2 || geomType == 3) {
 				firstpt = []float64{firstpt[0] + DeltaDim(int(geom_[pos])), firstpt[1] + DeltaDim(int(geom_[pos+1]))}
 			} else {
 				firstpt = []float64{DeltaDim(int(geom_[pos])), DeltaDim(int(geom_[pos+1]))}
@@ -179,8 +179,6 @@ func (feature *Feature) LoadGeometry() (geomm *geom.GeometryData, err error) {
 					pos += 2
 				}
 				lines = append(lines, line[:i])
-				line = [][]float64{firstpt}
-
 			} else {
 				pos += 1
 			}
@@ -210,7 +208,7 @@ func (feature *Feature) LoadGeometry() (geomm *geom.GeometryData, err error) {
 			for _, line := range lines {
 				if len(line) > 0 {
 					val := SignedArea(line)
-					if val < 0 {
+					if val > 0 {
 						polygons = append(polygons, [][][]float64{line})
 					} else {
 						if len(polygons) == 0 {
