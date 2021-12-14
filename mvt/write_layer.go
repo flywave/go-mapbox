@@ -101,16 +101,15 @@ func WriteValue(value interface{}, proto ProtoValue) (pbf.TagType, []byte) {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return proto.UIntValue, pbf.EncodeVarint_Value(uint64(vv.Uint()), 40)
 	case reflect.Bool:
-		if vv.Bool() == true {
+		if vv.Bool() {
 			return proto.BoolIntValue, []byte{1}
-		} else if vv.Bool() == false {
+		} else if !vv.Bool() {
 			return proto.BoolIntValue, []byte{0}
 		}
 	case reflect.String:
 		if len(vv.String()) > 0 {
 			size := uint64(len(vv.String()))
-			bytevals := []byte{}
-			bytevals = append(pbf.EncodeVarint(uint64(size)), []byte(vv.String())...)
+			bytevals := append(pbf.EncodeVarint(uint64(size)), []byte(vv.String())...)
 			return proto.StringValue, bytevals
 		} else {
 			return proto.StringValue, pbf.EncodeVarint(0)
@@ -138,11 +137,11 @@ func (layer *LayerWrite) GetTags(properties map[string]interface{}) []uint32 {
 	i := 0
 	for k, v := range properties {
 		keytag, keybool := layer.Keys_Map[k]
-		if keybool == false {
+		if !keybool {
 			keytag = layer.AddKey(k)
 		}
 		valuetag, valuebool := layer.Values_Map[v]
-		if valuebool == false {
+		if !valuebool {
 			valuetag = layer.AddValue(v)
 		}
 		tags[i] = keytag

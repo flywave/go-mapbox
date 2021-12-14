@@ -14,7 +14,7 @@ var multilinestring_s = `{"geometry": {"type": "MultiLineString", "coordinates":
 var point_s = `{"geometry": {"type": "Point", "coordinates": [-48.1640625, 47.754097979680026]}, "type": "Feature", "properties": {}}`
 var multipoint_s = `{"geometry": {"type": "MultiPoint", "coordinates": [[-48.1640625, 47.754097979680026], [-9.140625, 4.214943141390651]]}, "type": "Feature", "properties": {}}`
 
-var polygon, err = geojson.UnmarshalFeature([]byte(polygon_s))
+var polygon, _ = geojson.UnmarshalFeature([]byte(polygon_s))
 var multipolygon, _ = geojson.UnmarshalFeature([]byte(multipolygon_s))
 var linestring, _ = geojson.UnmarshalFeature([]byte(linestring_s))
 var multilinestring, _ = geojson.UnmarshalFeature([]byte(multilinestring_s))

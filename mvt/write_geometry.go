@@ -115,7 +115,7 @@ func (cur *Cursor) MovePoint(point []int32) {
 func (cur *Cursor) LinePoint(point []int32) {
 	deltax := point[0] - cur.LastPoint[0]
 	deltay := point[1] - cur.LastPoint[1]
-	if ((deltax == 0) && (deltay == 0)) == false {
+	if !((deltax == 0) && (deltay == 0)) {
 		cur.Geometry = append(cur.Geometry, uint32(paramEnc(deltax)))
 		cur.Geometry = append(cur.Geometry, uint32(paramEnc(deltay)))
 		cur.Count = cur.Count + 1

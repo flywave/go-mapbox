@@ -61,7 +61,7 @@ func Project(line [][]float64, x0 float64, y0 float64, size float64) [][]float64
 func (layer *Layer) Feature() (feature *Feature, err error) {
 	defer func() {
 		if recover() != nil {
-			err = errors.New("Error in Feature()")
+			err = errors.New("error in Feature()")
 			layer.featurePosition++
 		}
 	}()
@@ -126,7 +126,7 @@ func (layer *Layer) Feature() (feature *Feature, err error) {
 func (feature *Feature) LoadGeometryRaw() (geom []uint32, err error) {
 	defer func() {
 		if recover() != nil {
-			err = errors.New("Error in feature.LoadGeometry()")
+			err = errors.New("error in feature.LoadGeometry()")
 		}
 	}()
 
@@ -138,7 +138,7 @@ func (feature *Feature) LoadGeometryRaw() (geom []uint32, err error) {
 func (feature *Feature) LoadGeometry() (geomm *geom.GeometryData, err error) {
 	defer func() {
 		if recover() != nil {
-			err = errors.New("Error in feature.LoadGeometry()")
+			err = errors.New("error in feature.LoadGeometry()")
 		}
 	}()
 
@@ -254,7 +254,7 @@ func (feature *Feature) ToGeoJSON(tile m.TileID) (*geom.Feature, error) {
 	var err error
 	defer func() {
 		if recover() != nil {
-			err = errors.New("Error in feature.ToGeoJSON()")
+			err = errors.New("error in feature.ToGeoJSON()")
 		}
 	}()
 	extent := feature.extent

@@ -76,7 +76,7 @@ func TestReadsWrites(t *testing.T) {
 			m2[featg.Properties["@id"]] = featg
 		}
 	}
-	if len(m2) != len(m2) {
+	if len(m1) != len(m2) {
 		t.Errorf("Map sizes are different.")
 	}
 	i := 0

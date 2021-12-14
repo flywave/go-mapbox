@@ -21,7 +21,7 @@ type Tile struct {
 func NewTile(bytevals []byte, pt ProtoType) (tile *Tile, err error) {
 	defer func() {
 		if recover() != nil {
-			err = errors.New("Error in NewTile.")
+			err = errors.New("error in NewTile")
 		}
 	}()
 
@@ -60,7 +60,7 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 
 	defer func() {
 		if recover() != nil {
-			err = errors.New("Error in ReadTile")
+			err = errors.New("error in ReadTile")
 		}
 	}()
 
@@ -194,7 +194,7 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 				for pos < len(geom_) {
 					if geom_[pos] == 9 {
 						pos += 1
-						if pos != 1 && geom_type == 2 {
+						if pos != 1 && (geom_type == 2 || geom_type == 3) {
 							firstpt = []float64{firstpt[0] + DeltaDim(int(geom_[pos])), firstpt[1] + DeltaDim(int(geom_[pos+1]))}
 						} else {
 							firstpt = []float64{DeltaDim(int(geom_[pos])), DeltaDim(int(geom_[pos+1]))}
@@ -218,8 +218,6 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 								pos += 2
 							}
 							lines = append(lines, line[:i])
-							line = [][]float64{firstpt}
-
 						} else {
 							pos += 1
 						}
@@ -249,7 +247,7 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 						for _, line := range lines {
 							if len(line) > 0 {
 								val := SignedArea(line)
-								if val < 0 {
+								if val > 0 {
 									polygons = append(polygons, [][][]float64{line})
 								} else {
 									if len(polygons) == 0 {
@@ -307,7 +305,7 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 		}
 	}
 	if len(totalfeautures) == 0 {
-		err = errors.New("No features read from given tile.")
+		err = errors.New("no features read from given tile")
 	}
 	return totalfeautures, err
 }
@@ -316,7 +314,7 @@ func ReadRawTile(bytevals []byte, tileId m.TileID, pt ProtoType) ([]*geom.Featur
 	var err error
 	defer func() {
 		if recover() != nil {
-			err = errors.New("Error in ReadTile")
+			err = errors.New("error in ReadTile")
 		}
 	}()
 
@@ -445,7 +443,7 @@ func ReadRawTile(bytevals []byte, tileId m.TileID, pt ProtoType) ([]*geom.Featur
 				for pos < len(geom_) {
 					if geom_[pos] == 9 {
 						pos += 1
-						if pos != 1 && geom_type == 2 {
+						if pos != 1 && (geom_type == 2 || geom_type == 3) {
 							firstpt = []float64{firstpt[0] + DeltaDim(int(geom_[pos])), firstpt[1] + DeltaDim(int(geom_[pos+1]))}
 						} else {
 							firstpt = []float64{DeltaDim(int(geom_[pos])), DeltaDim(int(geom_[pos+1]))}
@@ -469,8 +467,6 @@ func ReadRawTile(bytevals []byte, tileId m.TileID, pt ProtoType) ([]*geom.Featur
 								pos += 2
 							}
 							lines = append(lines, line[:i])
-							line = [][]float64{firstpt}
-
 						} else {
 							pos += 1
 						}
@@ -500,7 +496,7 @@ func ReadRawTile(bytevals []byte, tileId m.TileID, pt ProtoType) ([]*geom.Featur
 						for _, line := range lines {
 							if len(line) > 0 {
 								val := SignedArea(line)
-								if val < 0 {
+								if val > 0 {
 									polygons = append(polygons, [][][]float64{line})
 								} else {
 									if len(polygons) == 0 {
@@ -560,7 +556,7 @@ func ReadRawTile(bytevals []byte, tileId m.TileID, pt ProtoType) ([]*geom.Featur
 	pts := [][]float64{{0, 0, 0}, {float64(extent), float64(extent), 0}}
 	Project(pts, x0, y0, size)
 	if len(totalfeautures) == 0 {
-		err = errors.New("No features read from given tile.")
+		err = errors.New("no features read from given tile")
 	}
 	return totalfeautures, pts, err
 }
