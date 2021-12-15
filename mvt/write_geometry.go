@@ -187,7 +187,7 @@ func assert_winding_order(coord [][]int32, exp_orient string) [][]int32 {
 
 func SignedArea2(ring [][]int32) float64 {
 	weight := 0.0
-	i = 0
+	i := 0
 	lenn := len(ring)
 	j := lenn - 1
 	var p1, p2 []int32
@@ -198,7 +198,7 @@ func SignedArea2(ring [][]int32) float64 {
 		}
 		p1 = ring[i]
 		p2 = ring[j]
-		weight += float64(p2[0]-p1[0]) * (p1[1] + p2[1])
+		weight += float64((p2[0] - p1[0]) * (p1[1] + p2[1]))
 		i++
 	}
 	return weight
