@@ -78,6 +78,7 @@ type Tileset struct {
 }
 
 type TileJSON struct {
+	Id           string        `json:"id"`
 	Attribution  *string       `json:"attribution"`
 	Bounds       [4]float64    `json:"bounds"`
 	Center       [3]float64    `json:"center"`
