@@ -101,8 +101,8 @@ type TileJSON struct {
 type VectorLayer struct {
 	Version      int                  `json:"version"`
 	Extent       int                  `json:"extent"`
-	ID           string               `json:"id"`
-	Name         string               `json:"name"`
+	ID           string               `json:"source"`
+	Name         string               `json:"source_name"`
 	Fields       map[string]FieldType `json:"fields"`
 	FeatureTags  []string             `json:"feature_tags,omitempty"`
 	GeometryType GeomType             `json:"geometry_type,omitempty"`
