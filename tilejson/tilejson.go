@@ -96,6 +96,8 @@ type TileJSON struct {
 	Template     *string       `json:"template"`
 	Legend       *string       `json:"legend"`
 	VectorLayers []VectorLayer `json:"vector_layers"`
+	Type         string        `json:"type"`
+	TileSize     uint32        `json:"tileSize"`
 }
 
 type VectorLayer struct {
