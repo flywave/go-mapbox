@@ -10,10 +10,9 @@ import (
 	"math"
 	"os"
 
+	"github.com/flywave/go-cog"
 	"github.com/flywave/imaging"
 	"golang.org/x/image/webp"
-
-	rt "github.com/flywave/go-geotiff"
 )
 
 func init() {
@@ -213,17 +212,19 @@ func (p *TerrariumPacker) Pack(h float64) [4]byte {
 }
 
 func DemEncode(path string, pk DemPacker) (image.Image, error) {
-	rst, err := rt.CreateRasterFromFile(path)
-	if err != nil {
-		return nil, err
+	rst := cog.Read(path)
+	if rst == nil || len(rst.Data) == 0 || len(rst.Rects) == 0 {
+		return nil, errors.New("tiff error")
 	}
-	row := rst.Rows()
-	col := rst.Columns()
-	img := image.NewNRGBA(image.Rect(0, 0, row, col))
+
+	img := image.NewNRGBA(rst.Rects[0])
+	data := rst.Data[0].([]float64)
+
+	row, col := rst.Rects[0].Dy(), rst.Rects[0].Dx()
 
 	for y := 0; y < row; y++ {
 		for x := 0; x < col; x++ {
-			h := rst.Value(y, x)
+			h := data[y*col+x]
 			dt := pk.Pack(h)
 			img.SetNRGBA(x, y, color.NRGBA{
 				R: dt[0],
@@ -233,5 +234,6 @@ func DemEncode(path string, pk DemPacker) (image.Image, error) {
 			})
 		}
 	}
+
 	return img, nil
 }
