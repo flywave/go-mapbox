@@ -78,6 +78,7 @@ type Tileset struct {
 }
 
 type TileJSON struct {
+	Id           string        `json:"id"`
 	Attribution  *string       `json:"attribution"`
 	Bounds       [4]float64    `json:"bounds"`
 	Center       [3]float64    `json:"center"`
@@ -95,13 +96,16 @@ type TileJSON struct {
 	Template     *string       `json:"template"`
 	Legend       *string       `json:"legend"`
 	VectorLayers []VectorLayer `json:"vector_layers"`
+	Type         string        `json:"type"`
+	TileSize     uint32        `json:"tileSize"`
 }
 
 type VectorLayer struct {
 	Version      int                  `json:"version"`
 	Extent       int                  `json:"extent"`
 	ID           string               `json:"id"`
-	Name         string               `json:"name"`
+	Source       string               `json:"source"`
+	Name         string               `json:"source_name"`
 	Fields       map[string]FieldType `json:"fields"`
 	FeatureTags  []string             `json:"feature_tags,omitempty"`
 	GeometryType GeomType             `json:"geometry_type,omitempty"`

@@ -1,6 +1,7 @@
 package raster
 
 import (
+	"fmt"
 	"os"
 	"testing"
 )
@@ -37,4 +38,11 @@ func TestDEM(t *testing.T) {
 			t.Fail()
 		}
 	}
+}
+
+func TestPack(t *testing.T) {
+	mp := &MapboxPacker{}
+	b := mp.Pack(200)
+	res := float64(b[0])*UNPACK_MAPBOX[0] + float64(b[1])*UNPACK_MAPBOX[1] + float64(b[2])*UNPACK_MAPBOX[2] - float64(b[0])*UNPACK_MAPBOX[3]
+	fmt.Println(res)
 }
