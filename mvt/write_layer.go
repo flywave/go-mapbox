@@ -63,7 +63,8 @@ func NewLayerConfig(config Config) LayerWrite {
 	proto := getProto(config.Proto)
 	cur := NewCursorExtent(config.TileID, config.Extent)
 	bds := m.Bounds(config.TileID)
-	return LayerWrite{TileID: config.TileID,
+	return LayerWrite{
+		TileID:     config.TileID,
 		DeltaX:     bds.E - bds.W,
 		DeltaY:     bds.N - bds.S,
 		Keys_Map:   keys_map,
