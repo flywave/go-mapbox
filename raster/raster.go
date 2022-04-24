@@ -44,15 +44,17 @@ func LoadDEMDataWithStream(f io.Reader, encoding int) (*DEMData, error) {
 		return nil, err
 	}
 	rect := m.Bounds()
-	if (m.ColorModel() != color.NRGBAModel && m.ColorModel() != color.RGBAModel) || rect.Dx() != rect.Dy() {
+	cm := m.ColorModel()
+	if (cm != color.NRGBAModel && cm != color.RGBAModel) || rect.Dx() != rect.Dy() {
 		return nil, errors.New("image format error!")
 	}
 
 	data := make([][4]byte, rect.Dx()*rect.Dy())
 	for y := 0; y < rect.Dy(); y++ {
 		for x := 0; x < rect.Dx(); x++ {
-			rgba := m.At(x, y).(color.NRGBA)
-			data[y*rect.Dx()+x] = [4]byte{rgba.R, rgba.G, rgba.B, rgba.A}
+			c := m.At(x, y)
+			r, g, b, a := cm.Convert(c).RGBA()
+			data[y*rect.Dx()+x] = [4]byte{uint8(r), uint8(g), uint8(b), uint8(a)}
 		}
 	}
 	return NewDEMData(data, encoding), nil
