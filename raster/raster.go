@@ -220,14 +220,14 @@ func DemEncode(path string, pk DemPacker) (image.Image, error) {
 	}
 
 	img := image.NewNRGBA(rst.Rects[0])
-	data := rst.Data[0].([]float64)
+	data := rst.Data[0].([]float32)
 
 	row, col := rst.Rects[0].Dy(), rst.Rects[0].Dx()
 
 	for y := 0; y < row; y++ {
 		for x := 0; x < col; x++ {
 			h := data[y*col+x]
-			dt := pk.Pack(h)
+			dt := pk.Pack(float64(h))
 			img.SetNRGBA(x, y, color.NRGBA{
 				R: dt[0],
 				G: dt[1],
