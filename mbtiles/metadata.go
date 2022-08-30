@@ -60,7 +60,7 @@ func (m *Metadata) ToMap() map[string]string {
 	ret["bounds"], _ = boundsToString(m.Bounds)
 
 	ret["type"] = layerTypeToString(m.Type)
-	ret["format"] = tileFormatToString(m.Format)
+	ret["format"] = TileFormatToString(m.Format)
 
 	if m.LayerData != nil {
 		data, _ := json.Marshal(m.LayerData)
@@ -126,7 +126,7 @@ type Attribute struct {
 	Values []interface{} `json:"values"`
 }
 
-func stringToTileFormat(s string) TileFormat {
+func StringToTileFormat(s string) TileFormat {
 	for i, k := range formatStrings {
 		if k == s {
 			return TileFormat(i)
@@ -136,7 +136,7 @@ func stringToTileFormat(s string) TileFormat {
 	return UNKNOWN
 }
 
-func tileFormatToString(s TileFormat) string {
+func TileFormatToString(s TileFormat) string {
 	return formatStrings[int(s)]
 }
 
