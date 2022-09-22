@@ -44,19 +44,31 @@ func LoadDEMDataWithStream(f io.Reader, encoding int) (*DEMData, error) {
 		return nil, err
 	}
 	rect := m.Bounds()
-	if m.ColorModel() != color.NRGBAModel || m.ColorModel() != color.YCbCrModel || rect.Dx() != rect.Dy() {
+	if rect.Dx() != rect.Dy() {
 		return nil, errors.New("image format error!")
 	}
 
-	data := make([][4]byte, rect.Dx()*rect.Dy())
-	for y := 0; y < rect.Dy(); y++ {
-		for x := 0; x < rect.Dx(); x++ {
-			c := m.At(x, y)
-			r, g, b, a := cm.Convert(c).RGBA()
-			data[y*rect.Dx()+x] = [4]byte{uint8(r), uint8(g), uint8(b), uint8(a)}
+	if m.ColorModel() == color.NRGBAModel {
+		data := make([][4]byte, rect.Dx()*rect.Dy())
+		for y := 0; y < rect.Dy(); y++ {
+			for x := 0; x < rect.Dx(); x++ {
+				rgba := m.At(x, y).(color.NRGBA)
+				data[y*rect.Dx()+x] = [4]byte{rgba.R, rgba.G, rgba.B, rgba.A}
+			}
 		}
+		return NewDEMData(data, encoding), nil
+	} else if m.ColorModel() == color.YCbCrModel {
+		m = YCbCr2RGBA(m)
+		data := make([][4]byte, rect.Dx()*rect.Dy())
+		for y := 0; y < rect.Dy(); y++ {
+			for x := 0; x < rect.Dx(); x++ {
+				rgba := m.At(x, y).(color.RGBA)
+				data[y*rect.Dx()+x] = [4]byte{rgba.R, rgba.G, rgba.B, rgba.A}
+			}
+		}
+		return NewDEMData(data, encoding), nil
 	}
-	return NewDEMData(data, encoding), nil
+	return nil, errors.New("image format error!")
 }
 
 func LoadDEMData(path string, encoding int) (*DEMData, error) {
