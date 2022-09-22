@@ -4,7 +4,6 @@ import (
 	"errors"
 	"image"
 	"image/color"
-	"image/draw"
 	"image/jpeg"
 	"image/png"
 	"io"
@@ -39,12 +38,6 @@ type DEMData struct {
 	Data     [][4]byte
 }
 
-func YCbCr2RGBA(img image.Image) *image.RGBA {
-	tmp := image.NewRGBA(img.Bounds())
-	draw.Draw(tmp, img.Bounds(), img, img.Bounds().Min, draw.Src)
-	return tmp
-}
-
 func LoadDEMDataWithStream(f io.Reader, encoding int) (*DEMData, error) {
 	m, _, err := image.Decode(f)
 	if err != nil {
@@ -65,12 +58,13 @@ func LoadDEMDataWithStream(f io.Reader, encoding int) (*DEMData, error) {
 		}
 		return NewDEMData(data, encoding), nil
 	} else if m.ColorModel() == color.YCbCrModel {
-		m = YCbCr2RGBA(m)
+
+		ycbcr := m.(*image.YCbCr)
 		data := make([][4]byte, rect.Dx()*rect.Dy())
 		for y := 0; y < rect.Dy(); y++ {
 			for x := 0; x < rect.Dx(); x++ {
-				rgba := m.At(x, y).(color.RGBA)
-				data[y*rect.Dx()+x] = [4]byte{rgba.R, rgba.G, rgba.B, rgba.A}
+				rgba := ycbcr.RGBA64At(x, y)
+				data[y*rect.Dx()+x] = [4]byte{byte(rgba.R / 256), byte(rgba.G / 256), byte(rgba.B / 256), byte(rgba.A / 256)}
 			}
 		}
 		return NewDEMData(data, encoding), nil
