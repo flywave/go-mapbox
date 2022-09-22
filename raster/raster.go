@@ -10,13 +10,14 @@ import (
 	"math"
 	"os"
 
+	fwebp "github.com/flywave/webp"
+
 	"github.com/flywave/go-cog"
 	"github.com/flywave/imaging"
-	"golang.org/x/image/webp"
 )
 
 func init() {
-	image.RegisterFormat("webp", "RIFF????WEBPVP8", webp.Decode, webp.DecodeConfig)
+	image.RegisterFormat("webp", "RIFF????WEBPVP8", fwebp.Decode, fwebp.DecodeConfig)
 	image.RegisterFormat("png", "\x89PNG\r\n\x1a\n", png.Decode, png.DecodeConfig)
 	image.RegisterFormat("jpeg", "\xff\xd8", jpeg.Decode, jpeg.DecodeConfig)
 }
@@ -48,28 +49,16 @@ func LoadDEMDataWithStream(f io.Reader, encoding int) (*DEMData, error) {
 		return nil, errors.New("image format error!")
 	}
 
-	if m.ColorModel() == color.NRGBAModel {
-		data := make([][4]byte, rect.Dx()*rect.Dy())
-		for y := 0; y < rect.Dy(); y++ {
-			for x := 0; x < rect.Dx(); x++ {
-				rgba := m.At(x, y).(color.NRGBA)
-				data[y*rect.Dx()+x] = [4]byte{rgba.R, rgba.G, rgba.B, rgba.A}
-			}
+	data := make([][4]byte, rect.Dx()*rect.Dy())
+	for y := 0; y < rect.Dy(); y++ {
+		for x := 0; x < rect.Dx(); x++ {
+			c := m.At(x, y)
+			rgba := color.RGBAModel.Convert(c).(color.RGBA)
+			r, g, b, a := rgba.RGBA()
+			data[y*rect.Dx()+x] = [4]byte{byte(r & 0xff), byte(g & 0xff), byte(b & 0xff), byte(a & 0xff)}
 		}
-		return NewDEMData(data, encoding), nil
-	} else if m.ColorModel() == color.YCbCrModel {
-
-		ycbcr := m.(*image.YCbCr)
-		data := make([][4]byte, rect.Dx()*rect.Dy())
-		for y := 0; y < rect.Dy(); y++ {
-			for x := 0; x < rect.Dx(); x++ {
-				rgba := ycbcr.RGBA64At(x, y)
-				data[y*rect.Dx()+x] = [4]byte{byte(rgba.R / 256), byte(rgba.G / 256), byte(rgba.B / 256), byte(rgba.A / 256)}
-			}
-		}
-		return NewDEMData(data, encoding), nil
 	}
-	return nil, errors.New("image format error!")
+	return NewDEMData(data, encoding), nil
 }
 
 func LoadDEMData(path string, encoding int) (*DEMData, error) {
