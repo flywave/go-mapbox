@@ -44,8 +44,7 @@ func LoadDEMDataWithStream(f io.Reader, encoding int) (*DEMData, error) {
 		return nil, err
 	}
 	rect := m.Bounds()
-	cm := m.ColorModel()
-	if (cm != color.NRGBAModel && cm != color.RGBAModel) || rect.Dx() != rect.Dy() {
+	if m.ColorModel() != color.NRGBAModel || m.ColorModel() != color.YCbCrModel || rect.Dx() != rect.Dy() {
 		return nil, errors.New("image format error!")
 	}
 
