@@ -4,6 +4,7 @@ import (
 	"errors"
 	"image"
 	"image/color"
+	"image/draw"
 	"image/jpeg"
 	"image/png"
 	"io"
@@ -36,6 +37,12 @@ type DEMData struct {
 	Dim      int
 	Stride   int
 	Data     [][4]byte
+}
+
+func YCbCr2RGBA(img image.Image) *image.RGBA {
+	tmp := image.NewRGBA(img.Bounds())
+	draw.Draw(tmp, img.Bounds(), img, img.Bounds().Min, draw.Src)
+	return tmp
 }
 
 func LoadDEMDataWithStream(f io.Reader, encoding int) (*DEMData, error) {
