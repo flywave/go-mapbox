@@ -9,6 +9,7 @@ require (
 	github.com/flywave/go-pbf v0.0.0-20210701015929-a3bdb1f6728e
 	github.com/flywave/go-quantized-mesh v0.0.0-20210525134750-cb854922974d
 	github.com/flywave/imaging v1.6.5
+	github.com/flywave/webp v1.1.1
 	github.com/go-courier/reflectx v1.3.4
 	github.com/golang/protobuf v1.5.2
 	github.com/mattn/go-sqlite3 v1.14.8
