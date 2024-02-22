@@ -73,8 +73,8 @@ func Filter(feature *geom.Feature, config *Reduce_Config) bool {
 		}
 	case "LineString", "MultiLineString", "MultiPolygon", "Polygon":
 		bbox := geom.BoundingBoxFromGeometryData(&feature.GeometryData)
-		percentx := (bbox[2] - bbox[0]) / config.DeltaX
-		percenty := (bbox[3] - bbox[1]) / config.DeltaY
+		percentx := (bbox[1][0] - bbox[0][0]) / config.DeltaX
+		percenty := (bbox[1][1] - bbox[0][1]) / config.DeltaY
 		return percentx > config.Percent || percenty > config.Percent
 	}
 	return false

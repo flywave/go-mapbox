@@ -337,9 +337,9 @@ func makefeature(addgeom geom.GeometryData, prop map[string]interface{}, id inte
 	case "MultiLineString":
 		feat2.GeometryData.MultiLineString = addgeom.MultiLineString
 	case "Polygon":
-		if len(addgeom.Polygon[0][0]) == 8 && len(addgeom.BoundingBox) == 4 {
+		if len(addgeom.Polygon[0][0]) == 8 && addgeom.BoundingBox != nil {
 			bb := addgeom.BoundingBox
-			w, s, e, n := bb[0], bb[1], bb[2], bb[3]
+			w, s, e, n := bb[0][0], bb[0][1], bb[1][0], bb[1][1]
 			poly := [][][]float64{{{e, n}, {w, n}, {w, s}, {e, s}, {e, n}}}
 			addgeom.Polygon = poly
 		}
@@ -366,9 +366,9 @@ func ClipTile(feature *geom.Feature, tileid m.TileID) *geom.Feature {
 	return makefeature(addgeom, feature.Properties, feature.ID)
 }
 
-func getbounds(tileid m.TileID) []float64 {
+func getbounds(tileid m.TileID) *[2][3]float64 {
 	bds := m.Bounds(tileid)
-	return []float64{bds.W, bds.S, bds.E, bds.N}
+	return &[2][3]float64{{bds.W, bds.S, 0}, {bds.E, bds.N, 0}}
 }
 
 var squaregeom = geom.GeometryData{Type: "Polygon", Polygon: [][][]float64{{{100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0}}}}
@@ -377,7 +377,7 @@ func getgeomsquaretile(tileid m.TileID) geom.GeometryData {
 	var val geom.GeometryData
 	val.Type = squaregeom.Type
 	val.Polygon = squaregeom.Polygon
-	val.BoundingBox = getbounds(tileid)
+	val.BoundingBox = (*geom.BoundingBox)(getbounds(tileid))
 	return val
 }
 
@@ -399,7 +399,7 @@ func ClipDownTile(geom_ geom.GeometryData, tileid m.TileID) map[m.TileID]geom.Ge
 		if len(geom_.Polygon) == 1 {
 			if len(geom_.Polygon[0]) == 4 || len(geom_.Polygon[0]) == 5 {
 				bbb := geom.BoundingBoxFromGeometryData(&geom_)
-				bdsref := m.Extrema{W: bbb[0], S: bbb[1], E: bbb[2], N: bbb[3]}
+				bdsref := m.Extrema{W: bbb[0][0], S: bbb[0][1], E: bbb[1][0], N: bbb[1][1]}
 
 				if DeltaBounds(bdsref, bds) {
 					return map[m.TileID]geom.GeometryData{
@@ -465,7 +465,7 @@ func ClipFeature(feature *geom.Feature, endzoom int, keep_parents bool) map[m.Ti
 	}
 	geom_ := feature.GeometryData
 	bb := geom.BoundingBoxFromGeometryData(&geom_)
-	firstzoom, tileid := GetFirstZoom(m.Extrema{W: bb[0], S: bb[1], E: bb[2], N: bb[3]})
+	firstzoom, tileid := GetFirstZoom(m.Extrema{W: bb[0][0], S: bb[0][1], E: bb[1][0], N: bb[1][1]})
 	currentzoom := firstzoom
 	mymap := map[m.TileID]*geom.Feature{tileid: feature}
 

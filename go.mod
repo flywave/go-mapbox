@@ -16,7 +16,9 @@ require (
 	github.com/paulmach/go.geojson v1.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/image v0.0.0-20211028202545-6944b10bf410
+	golang.org/x/image v0.14.0
 )
 
 replace golang.org/x/image => github.com/golang/image v0.0.0-20190703141733-d6a02ce849c9
+
+replace github.com/flywave/go-geom => ../go-geom
