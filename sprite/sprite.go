@@ -129,6 +129,7 @@ func (t TextureMeta) ScaleTo(pixelRatio int) *TextureMeta {
 	scale := float64(pixelRatio) / float64(t.PixelRatio)
 
 	return &TextureMeta{
+		Id:         t.Id,
 		Name:       t.Name,
 		Width:      int(float64(t.Width) * scale),
 		Height:     int(float64(t.Height) * scale),
