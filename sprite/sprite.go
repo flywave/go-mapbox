@@ -23,6 +23,7 @@ func GenerateSprite(textures []Texture, pixelRatio int, renderImage bool) (map[s
 		img := t.TextureImage()
 
 		tm := &TextureMeta{
+			Id:         t.TextureId(),
 			Name:       t.TextureName(),
 			PixelRatio: t.TexturePixelRatio(),
 			Width:      t.TextureWidth(),
@@ -96,6 +97,7 @@ func GenerateSprite(textures []Texture, pixelRatio int, renderImage bool) (map[s
 }
 
 type Texture interface {
+	TextureId() *string
 	TextureName() string
 	TextureWidth() int
 	TextureHeight() int
@@ -116,10 +118,11 @@ func (s TextureSprite) String() string {
 }
 
 type TextureMeta struct {
-	Name       string `json:"-"`
-	Width      int    `json:"width"`
-	Height     int    `json:"height"`
-	PixelRatio int    `json:"pixelRatio"`
+	Id         *string `json:"id,omitempty"`
+	Name       string  `json:"-"`
+	Width      int     `json:"width"`
+	Height     int     `json:"height"`
+	PixelRatio int     `json:"pixelRatio"`
 }
 
 func (t TextureMeta) ScaleTo(pixelRatio int) *TextureMeta {
