@@ -36,6 +36,7 @@ func TestGenerateSprite(t *testing.T) {
 		addLabel(img, 2, 20, fmt.Sprintf("%d,%d", size, size))
 
 		textures = append(textures, &TextureTest{
+			Id:         "id",
 			SymbolName: name,
 			Image:      img,
 			PixelRatio: pixelRatio,
@@ -70,9 +71,14 @@ func addLabel(img *image.RGBA, x, y int, label string) {
 }
 
 type TextureTest struct {
+	Id         string
 	SymbolName string
 	PixelRatio int
 	image.Image
+}
+
+func (m *TextureTest) TextureId() *string {
+	return &m.Id
 }
 
 func (m *TextureTest) TexturePixelRatio() int {
