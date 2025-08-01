@@ -195,7 +195,9 @@ func TestWriteLayer(t *testing.T) {
 		// 移除自动添加的layer属性进行比较
 		props1 := make(map[string]interface{})
 		for k, v := range feat1.Properties {
-			props1[k] = v
+			if k != "layer" { // 忽略自动添加的layer属性
+				props1[k] = v
+			}
 		}
 
 		props2 := make(map[string]interface{})
