@@ -58,12 +58,6 @@ func (tile *Tile) Render() []byte {
 
 func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []*geom.Feature, err error) {
 
-	defer func() {
-		if recover() != nil {
-			err = errors.New("error in ReadTile")
-		}
-	}()
-
 	proto := getProto(pt)
 
 	tile := &Tile{
@@ -144,11 +138,11 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 			}
 			for i, pos := range features {
 				tile.Buf.Pos = pos
-				endpos := tile.Buf.Pos + tile.Buf.ReadVarint()
+				featureEndPos := tile.Buf.Pos + tile.Buf.ReadVarint()
 
 				feature := &geom.Feature{Properties: map[string]interface{}{}}
 
-				for tile.Buf.Pos < endpos {
+				for tile.Buf.Pos < featureEndPos {
 					key, val := tile.Buf.ReadTag()
 
 					if key == proto.Feature.ID && val == pbf.Varint {
@@ -157,22 +151,22 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 
 					if key == proto.Feature.Tags && val == pbf.Bytes {
 						tags := tile.Buf.ReadPackedUInt32()
-						i := 0
-						for i < len(tags) {
-							var key string
-							if len(keys) <= int(tags[i]) {
-								key = ""
+						tagIndex := 0
+						for tagIndex < len(tags) {
+							var tagKey string
+							if len(keys) <= int(tags[tagIndex]) {
+								tagKey = ""
 							} else {
-								key = keys[tags[i]]
+								tagKey = keys[tags[tagIndex]]
 							}
-							var val interface{}
-							if len(values) <= int(tags[i+1]) {
-								val = ""
+							var tagValue interface{}
+							if len(values) <= int(tags[tagIndex+1]) {
+								tagValue = nil
 							} else {
-								val = values[tags[i+1]]
+								tagValue = values[tags[tagIndex+1]]
 							}
-							feature.Properties[key] = val
-							i += 2
+							feature.Properties[tagKey] = tagValue
+							tagIndex += 2
 						}
 					}
 					if key == proto.Feature.Type && val == pbf.Varint {
@@ -195,9 +189,19 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 					if geom_[pos] == 9 {
 						pos += 1
 						if pos != 1 && (geom_type == 2 || geom_type == 3) {
-							firstpt = []float64{firstpt[0] + DeltaDim(int(geom_[pos])), firstpt[1] + DeltaDim(int(geom_[pos+1]))}
+							if pos+1 < len(geom_) {
+								firstpt = []float64{firstpt[0] + DeltaDim(int(geom_[pos])), firstpt[1] + DeltaDim(int(geom_[pos+1]))}
+							} else {
+								// Handle insufficient geometry data
+								firstpt = []float64{0, 0}
+							}
 						} else {
-							firstpt = []float64{DeltaDim(int(geom_[pos])), DeltaDim(int(geom_[pos+1]))}
+							if pos+1 < len(geom_) {
+								firstpt = []float64{DeltaDim(int(geom_[pos])), DeltaDim(int(geom_[pos+1]))}
+							} else {
+								// Handle insufficient geometry data
+								firstpt = []float64{0, 0}
+							}
 						}
 						pos += 2
 						if len(geom_) == 3 {
@@ -208,16 +212,16 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 							length := int(cmdLen >> 3)
 							line := make([][]float64, length+1)
 							pos += 1
-							endpos := pos + length*2
+							lineEndpos := pos + length*2
 							line[0] = firstpt
-							i := 1
-							for pos < endpos && pos+1 < len(geom_) {
+							lineIndex := 1
+							for pos < lineEndpos && pos+1 < len(geom_) {
 								firstpt = []float64{firstpt[0] + DeltaDim(int(geom_[pos])), firstpt[1] + DeltaDim(int(geom_[pos+1]))}
-								line[i] = firstpt
-								i++
+								line[lineIndex] = firstpt
+								lineIndex++
 								pos += 2
 							}
-							lines = append(lines, line[:i])
+							lines = append(lines, line[:lineIndex])
 						} else {
 							pos += 1
 						}
@@ -271,24 +275,35 @@ func ReadTile(bytevals []byte, tileid m.TileID, pt ProtoType) (totalfeautures []
 					}
 				}
 
-				switch geom_type {
-				case GeomTypePoint:
-					if len(polygons[0][0]) == 1 {
-						feature.GeometryData = *geom.NewPointGeometryData(polygons[0][0][0])
-					} else {
-						feature.GeometryData = *geom.NewMultiPointGeometryData(polygons[0][0]...)
+				if len(lines) == 0 {
+					switch geom_type {
+					case GeomTypePoint:
+						feature.GeometryData = *geom.NewPointGeometryData(nil)
+					case GeomTypeLineString:
+						feature.GeometryData = *geom.NewLineStringGeometryData(nil)
+					case GeomTypePolygon:
+						feature.GeometryData = *geom.NewPolygonGeometryData(nil)
 					}
-				case GeomTypeLineString:
-					if len(polygons[0]) == 1 {
-						feature.GeometryData = *geom.NewLineStringGeometryData(polygons[0][0])
-					} else {
-						feature.GeometryData = *geom.NewMultiLineStringGeometryData(polygons[0]...)
-					}
-				case GeomTypePolygon:
-					if len(polygons) == 1 {
-						feature.GeometryData = *geom.NewPolygonGeometryData(polygons[0])
-					} else {
-						feature.GeometryData = *geom.NewMultiPolygonGeometryData(polygons...)
+				} else {
+					switch geom_type {
+					case GeomTypePoint:
+						if len(polygons[0][0]) == 1 {
+							feature.GeometryData = *geom.NewPointGeometryData(polygons[0][0][0])
+						} else {
+							feature.GeometryData = *geom.NewMultiPointGeometryData(polygons[0][0]...)
+						}
+					case GeomTypeLineString:
+						if len(polygons[0]) == 1 {
+							feature.GeometryData = *geom.NewLineStringGeometryData(polygons[0][0])
+						} else {
+							feature.GeometryData = *geom.NewMultiLineStringGeometryData(polygons[0]...)
+						}
+					case GeomTypePolygon:
+						if len(polygons) == 1 {
+							feature.GeometryData = *geom.NewPolygonGeometryData(polygons[0])
+						} else {
+							feature.GeometryData = *geom.NewMultiPolygonGeometryData(polygons...)
+						}
 					}
 				}
 				feature.GeometryData.EPSG = 4326
@@ -393,11 +408,11 @@ func ReadRawTile(bytevals []byte, tileId m.TileID, pt ProtoType) ([]*geom.Featur
 			}
 			for i, pos := range features {
 				tile.Buf.Pos = pos
-				endpos := tile.Buf.Pos + tile.Buf.ReadVarint()
+				featureEndPos := tile.Buf.Pos + tile.Buf.ReadVarint()
 
 				feature := &geom.Feature{Properties: map[string]interface{}{}}
 
-				for tile.Buf.Pos < endpos {
+				for tile.Buf.Pos < featureEndPos {
 					key, val := tile.Buf.ReadTag()
 
 					if key == proto.Feature.ID && val == pbf.Varint {
@@ -406,22 +421,22 @@ func ReadRawTile(bytevals []byte, tileId m.TileID, pt ProtoType) ([]*geom.Featur
 
 					if key == proto.Feature.Tags && val == pbf.Bytes {
 						tags := tile.Buf.ReadPackedUInt32()
-						i := 0
-						for i < len(tags) {
-							var key string
-							if len(keys) <= int(tags[i]) {
-								key = ""
+						tagIndex := 0
+						for tagIndex < len(tags) {
+							var tagKey string
+							if len(keys) <= int(tags[tagIndex]) {
+								tagKey = ""
 							} else {
-								key = keys[tags[i]]
+								tagKey = keys[tags[tagIndex]]
 							}
-							var val interface{}
-							if len(values) <= int(tags[i+1]) {
-								val = ""
+							var tagValue interface{}
+							if len(values) <= int(tags[tagIndex+1]) {
+								tagValue = ""
 							} else {
-								val = values[tags[i+1]]
+								tagValue = values[tags[tagIndex+1]]
 							}
-							feature.Properties[key] = val
-							i += 2
+							feature.Properties[tagKey] = tagValue
+							tagIndex += 2
 						}
 					}
 					if key == proto.Feature.Type && val == pbf.Varint {
@@ -457,16 +472,16 @@ func ReadRawTile(bytevals []byte, tileId m.TileID, pt ProtoType) ([]*geom.Featur
 							length := int(cmdLen >> 3)
 							line := make([][]float64, length+1)
 							pos += 1
-							endpos := pos + length*2
+							lineEndpos := pos + length*2
 							line[0] = firstpt
-							i := 1
-							for pos < endpos && pos+1 < len(geom_) {
+							lineIndex := 1
+							for pos < lineEndpos && pos+1 < len(geom_) {
 								firstpt = []float64{firstpt[0] + DeltaDim(int(geom_[pos])), firstpt[1] + DeltaDim(int(geom_[pos+1]))}
-								line[i] = firstpt
-								i++
+								line[lineIndex] = firstpt
+								lineIndex++
 								pos += 2
 							}
-							lines = append(lines, line[:i])
+							lines = append(lines, line[:lineIndex])
 						} else {
 							pos += 1
 						}

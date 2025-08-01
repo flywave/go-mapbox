@@ -58,9 +58,10 @@ func (slice *Slice) IntersectY(ax, ay, bx, by, y float64) float64 {
 }
 
 func (slice *Slice) Intersect(ax, ay, bx, by, val float64) float64 {
-	if slice.Axis == 0 {
+	switch slice.Axis {
+	case 0:
 		return slice.IntersectX(ax, ay, bx, by, val)
-	} else if slice.Axis == 1 {
+	case 1:
 		return slice.IntersectY(ax, ay, bx, by, val)
 	}
 	return 0.0
@@ -80,10 +81,11 @@ func (input *ClipGeom) clipLine() {
 		ay = input.Geom[i][1]
 		bx = input.Geom[i+1][0]
 		by = input.Geom[i+1][1]
-		if input.Axis == 0 {
+		switch input.Axis {
+		case 0:
 			a = ax
 			b = bx
-		} else if input.Axis == 1 {
+		case 1:
 			a = ay
 			b = by
 		}
@@ -119,9 +121,10 @@ func (input *ClipGeom) clipLine() {
 	last := len(input.Geom) - 1
 	ax = input.Geom[last][0]
 	ay = input.Geom[last][1]
-	if input.Axis == 0 {
+	switch input.Axis {
+	case 0:
 		a = ax
-	} else if input.Axis == 1 {
+	case 1:
 		a = ay
 	}
 	if a >= k1 && a <= k2 {
@@ -259,7 +262,8 @@ func IsEmpty(geom geom.GeometryData) bool {
 }
 
 func PointClipAboutTile(feature *geom.Feature, tileid m.TileID) *geom.Feature {
-	if feature.GeometryData.Type == "Point" {
+	switch feature.GeometryData.Type {
+	case "Point":
 		checktileid := m.Tile(feature.GeometryData.Point[0], feature.GeometryData.Point[1], int(tileid.Z))
 		if m.IsEqual(checktileid, tileid) {
 			feature.Properties["TILEID"] = tileid
@@ -267,7 +271,7 @@ func PointClipAboutTile(feature *geom.Feature, tileid m.TileID) *geom.Feature {
 		}
 
 		return &geom.Feature{}
-	} else if feature.GeometryData.Type == "MultiPoint" {
+	case "MultiPoint":
 		newpoints := [][]float64{}
 		for _, pt := range feature.GeometryData.MultiPoint {
 			checktileid := m.Tile(pt[0], pt[1], int(tileid.Z))
@@ -293,11 +297,12 @@ func PointClipAboutTile(feature *geom.Feature, tileid m.TileID) *geom.Feature {
 }
 
 func PointClipAboutZoom(feature *geom.Feature, zoom int) map[m.TileID]*geom.Feature {
-	if feature.GeometryData.Type == "Point" {
+	switch feature.GeometryData.Type {
+	case "Point":
 		checktileid := m.Tile(feature.GeometryData.Point[0], feature.GeometryData.Point[1], zoom)
 		feature.Properties["TILEID"] = checktileid
 		return map[m.TileID]*geom.Feature{checktileid: feature}
-	} else if feature.GeometryData.Type == "MultiPoint" {
+	case "MultiPoint":
 		newpoints := map[m.TileID][][]float64{}
 		for _, pt := range feature.GeometryData.MultiPoint {
 			checktileid := m.Tile(pt[0], pt[1], zoom)

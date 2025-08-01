@@ -113,7 +113,8 @@ func WriteValue(value interface{}, proto ProtoValue) (pbf.TagType, []byte) {
 			bytevals := append(pbf.EncodeVarint(uint64(size)), []byte(vv.String())...)
 			return proto.StringValue, bytevals
 		} else {
-			return proto.StringValue, pbf.EncodeVarint(0)
+			// 对于空字符串，仍然写入一个空字符串而不是0
+			return proto.StringValue, append(pbf.EncodeVarint(0), []byte{}...)
 		}
 	}
 

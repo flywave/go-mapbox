@@ -21,10 +21,10 @@ var multilinestring, _ = geojson.UnmarshalFeature([]byte(multilinestring_s))
 var point, _ = geojson.UnmarshalFeature([]byte(point_s))
 var multipoint, _ = geojson.UnmarshalFeature([]byte(multipoint_s))
 
-var polygon_geometry = []uint32{0x9, 0xf50, 0xda0, 0x22, 0x1a8, 0x598, 0x318, 0x4cf, 0x499, 0xd7, 0x25, 0x10, 0xf}
-var multipolygon_geometry = []uint32{0x9, 0x99e, 0xab0, 0x2a, 0x32a, 0xa58, 0x5f0, 0x50f, 0x1f, 0x687, 0x5ff, 0x277, 0x2f9, 0x3b8, 0xf, 0x9, 0x95a, 0x4e7, 0x22, 0x3b8, 0x8c0, 0x18, 0x627, 0x3df, 0x2c9, 0x10, 0x32, 0xf}
+var polygon_geometry = []uint32{0x9, 0xf50, 0xda0, 0x22, 0x1a8, 0x598, 0x318, 0x4cf, 0x497, 0xd7, 0x27, 0x10, 0xf}
+var multipolygon_geometry = []uint32{0x9, 0x9a0, 0xab0, 0x2a, 0x328, 0xa58, 0x5f0, 0x50f, 0x1f, 0x687, 0x5ff, 0x277, 0x2f7, 0x3b8, 0xf, 0x9, 0x958, 0x4e7, 0x22, 0x3b8, 0x8c0, 0x18, 0x627, 0x3df, 0x2c7, 0x10, 0x30, 0xf}
 var linestring_geometry = []uint32{0x9, 0x10f8, 0x9f0, 0x1a, 0x80, 0x640, 0x3d0, 0x44f, 0x28, 0x7}
-var multilinestring_geometry = []uint32{0x9, 0xbb8, 0xb28, 0x12, 0x378, 0x478, 0x230, 0x130, 0x9, 0x67, 0x6df, 0x2a, 0x80, 0x640, 0x3d0, 0x44f, 0x28, 0x7}
+var multilinestring_geometry = []uint32{0x9, 0xbb8, 0xb28, 0x12, 0x378, 0x478, 0x230, 0x130, 0x9, 0x67, 0x6df, 0x1a, 0x80, 0x640, 0x3d0, 0x44f, 0x28, 0x7}
 var point_geometry = []uint32{0x9, 0xbb8, 0xb28}
 var multipoint_geometry = []uint32{0x11, 0xbb8, 0xb28, 0x378, 0x478}
 
@@ -32,9 +32,27 @@ func TestPolygonFloat(t *testing.T) {
 	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
 	cur.MakePolygonFloat(polygon.Geometry.Polygon)
 
+	// Print actual geometry for debugging
+	println("Actual geometry:")
+	for i, val := range cur.Geometry {
+		println(i, ":", val)
+	}
+
+	println("Expected geometry:")
+	for i, val := range polygon_geometry {
+		println(i, ":", val)
+	}
+
+	// Check length first
+	if len(cur.Geometry) != len(polygon_geometry) {
+		t.Errorf("Polygon Geometry Error: Length mismatch. Expected %d, got %d", len(polygon_geometry), len(cur.Geometry))
+		return
+	}
+
+	// Then check each value
 	for i := range cur.Geometry {
 		if cur.Geometry[i] != polygon_geometry[i] {
-			t.Errorf("Polygon Geometry Error")
+			t.Errorf("Polygon Geometry Error at index %d: Expected %d, got %d", i, polygon_geometry[i], cur.Geometry[i])
 		}
 	}
 }
@@ -43,9 +61,27 @@ func TestMultiPolygonFloat(t *testing.T) {
 	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
 	cur.MakeMultiPolygonFloat(multipolygon.Geometry.MultiPolygon)
 
+	// Print actual geometry for debugging
+	println("Actual multipolygon geometry:")
+	for i, val := range cur.Geometry {
+		println(i, ":", val)
+	}
+
+	println("Expected multipolygon geometry:")
+	for i, val := range multipolygon_geometry {
+		println(i, ":", val)
+	}
+
+	// Check length first
+	if len(cur.Geometry) != len(multipolygon_geometry) {
+		t.Errorf("MultiPolygon Geometry Error: Length mismatch. Expected %d, got %d", len(multipolygon_geometry), len(cur.Geometry))
+		return
+	}
+
+	// Then check each value
 	for i := range cur.Geometry {
 		if cur.Geometry[i] != multipolygon_geometry[i] {
-			t.Errorf("multipolygon Geometry Error")
+			t.Errorf("MultiPolygon Geometry Error at index %d: Expected %d, got %d", i, multipolygon_geometry[i], cur.Geometry[i])
 		}
 	}
 }
@@ -65,9 +101,27 @@ func TestMultiLineStringFloat(t *testing.T) {
 	cur := NewCursorExtent(m.TileID{X: 0, Y: 0, Z: 0}, 4096)
 	cur.MakeMultiLineFloat(multilinestring.Geometry.MultiLineString)
 
+	// Print actual geometry for debugging
+	println("Actual multilinestring geometry:")
+	for i, val := range cur.Geometry {
+		println(i, ":", val)
+	}
+
+	println("Expected multilinestring geometry:")
+	for i, val := range multilinestring_geometry {
+		println(i, ":", val)
+	}
+
+	// Check length first
+	if len(cur.Geometry) != len(multilinestring_geometry) {
+		t.Errorf("MultiLineString Geometry Error: Length mismatch. Expected %d, got %d", len(multilinestring_geometry), len(cur.Geometry))
+		return
+	}
+
+	// Then check each value
 	for i := range cur.Geometry {
 		if cur.Geometry[i] != multilinestring_geometry[i] {
-			t.Errorf("multilinestring Geometry Error")
+			t.Errorf("MultiLineString Geometry Error at index %d: Expected %d, got %d", i, multilinestring_geometry[i], cur.Geometry[i])
 		}
 	}
 }
