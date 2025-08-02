@@ -2,18 +2,17 @@ package fonts
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"testing"
 
 	"github.com/flywave/freetype/truetype"
-	"github.com/golang/protobuf/proto"
+	"github.com/flywave/go-pbf"
 	"github.com/stretchr/testify/require"
 )
 
 func builderFor(fontFamily string) *SDFBuilder {
-	ttf, err := ioutil.ReadFile("../../tests/" + fontFamily + ".ttf")
+	ttf, err := os.ReadFile("../data/fonts/" + fontFamily + ".ttf")
 	if err != nil {
 		panic(err)
 	}
@@ -33,9 +32,10 @@ func TestSDFBuilder_Glyph(t *testing.T) {
 	for i := 0; i < 255; i++ {
 		g := builder.Glyph(rune(i))
 		if g != nil {
-			fmt.Printf("%s %d\n", strconv.Itoa(int(*g.Id)), *g.Top)
+			fmt.Printf("%s %d\n", strconv.Itoa(int(g.ID)), g.Top)
 			img := DrawGlyph(g, true)
-			SavePNG(fmt.Sprintf("../../tests/data/NotoSans/%d.png", i), img)
+			os.MkdirAll("../data/fonts/data/NotoSans", os.ModePerm)
+			SavePNG(fmt.Sprintf("../data/fonts/data/NotoSans/%d.png", i), img)
 		}
 	}
 }
@@ -50,9 +50,12 @@ func TestSDFBuilder(t *testing.T) {
 			{22784, 23039},
 		} {
 			s := builder.Glyphs(rng[0], rng[1])
-			bytes, err := proto.Marshal(s)
-			require.NoError(t, err)
-			ioutil.WriteFile(fmt.Sprintf("../../tests/data/NotoSans/%d-%d.pbf", rng[0], rng[1]), bytes, os.ModePerm)
+			w := pbf.NewWriter()
+			if err := s.WritePBF(w); err != nil {
+				require.NoError(t, err)
+			}
+			bytes := w.Finish()
+			os.WriteFile(fmt.Sprintf("../data/fonts/data/NotoSans/%d-%d.pbf", rng[0], rng[1]), bytes, os.ModePerm)
 		}
 	})
 }

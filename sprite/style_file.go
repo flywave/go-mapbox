@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	InvalidSubFile = errors.New("invalid sub file")
+	ErrInvalidSubFile = errors.New("invalid sub file")
 )
 
 type StyleFile struct {
@@ -41,7 +41,7 @@ var reSubFile = regexp.MustCompile(`([^@]+)(@([0-9]+)x)?(\.[A-Za-z0-9]+)$`)
 
 func ParseStyleFile(s string) (*StyleFile, error) {
 	if !reSubFile.MatchString(s) {
-		return nil, InvalidSubFile
+		return nil, ErrInvalidSubFile
 	}
 
 	matched := reSubFile.FindAllStringSubmatch(s, -1)

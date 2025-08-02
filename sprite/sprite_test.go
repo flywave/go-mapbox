@@ -46,13 +46,13 @@ func TestGenerateSprite(t *testing.T) {
 	{
 		_, img, err := GenerateSprite(textures, 2, true)
 		require.NoError(t, err)
-		SavePNG("../../tests/data/test@2x.png", img)
+		SavePNG("../data/test@2x.png", img)
 	}
 
 	{
 		_, img, err := GenerateSprite(textures, 1, true)
 		require.NoError(t, err)
-		SavePNG("../../tests/data/test.png", img)
+		SavePNG("../data/test.png", img)
 	}
 }
 

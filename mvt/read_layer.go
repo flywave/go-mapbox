@@ -21,7 +21,6 @@ type Layer struct {
 
 func (tile *Tile) NewLayer(endpos int, pt ProtoType) {
 	proto := getProto(pt)
-
 	layer := &Layer{StartPos: tile.Buf.Pos, EndPos: endpos, Proto: proto}
 	key, val := tile.Buf.ReadTag()
 	for tile.Buf.Pos < layer.EndPos {
@@ -75,6 +74,7 @@ func (tile *Tile) NewLayer(endpos int, pt ProtoType) {
 	if layer.Extent == 0 {
 		layer.Extent = 4096
 	}
+
 	layer.Number_Features = len(layer.features)
 	tile.LayerMap[layer.Name] = layer
 	tile.Buf.Pos = endpos

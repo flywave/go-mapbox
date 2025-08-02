@@ -46,11 +46,61 @@ type Proto struct {
 }
 
 var (
-	MapboxProto = Proto{Layers: 3, Layer: ProtoLayer{Version: 15, Name: 1, Features: 2, Keys: 3, Values: 4, Extent: 5}, Feature: ProtoFeature{ID: 1, Tags: 2, Type: 3, Geometry: 4}, Value: ProtoValue{StringValue: 1, FloatValue: 2, DoubleValue: 3, IntValue: 4, UIntValue: 5, SIntValue: 6, BoolIntValue: 7}}
+	MapboxProto = Proto{
+		Layers: 3,
+		Layer: ProtoLayer{
+			Version:  15,
+			Name:     1,
+			Features: 2,
+			Keys:     3,
+			Values:   4,
+			Extent:   5,
+		},
+		Feature: ProtoFeature{
+			ID:       1,
+			Tags:     2,
+			Type:     3,
+			Geometry: 4,
+		},
+		Value: ProtoValue{
+			StringValue:  1,
+			FloatValue:   2,
+			DoubleValue:  3,
+			IntValue:     4,
+			UIntValue:    5,
+			SIntValue:    6,
+			BoolIntValue: 7,
+		},
+	}
 )
 
 var (
-	LKProto = Proto{Layers: 2, Layer: ProtoLayer{Version: 15, Name: 1, Features: 2, Keys: 4, Values: 5, Extent: 6}, Feature: ProtoFeature{ID: 1, Tags: 7, Type: 6, Geometry: 2}, Value: ProtoValue{StringValue: 1, FloatValue: 2, DoubleValue: 3, IntValue: 4, UIntValue: 5, SIntValue: 6, BoolIntValue: 7}}
+	LKProto = Proto{
+		Layers: 2,
+		Layer: ProtoLayer{
+			Version:  15,
+			Name:     1,
+			Features: 2,
+			Keys:     4,
+			Values:   5,
+			Extent:   6,
+		},
+		Feature: ProtoFeature{
+			ID:       1,
+			Tags:     7,
+			Type:     6,
+			Geometry: 2,
+		},
+		Value: ProtoValue{
+			StringValue:  1,
+			FloatValue:   2,
+			DoubleValue:  3,
+			IntValue:     4,
+			UIntValue:    5,
+			SIntValue:    6,
+			BoolIntValue: 7,
+		},
+	}
 )
 
 type ProtoType int

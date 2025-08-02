@@ -10,8 +10,8 @@ import (
 )
 
 func DrawGlyph(glyph *Glyph, smoothstep bool) image.Image {
-	width := int(*glyph.Width + 6)
-	height := int(*glyph.Height + 6)
+	width := int(glyph.Width + 6)
+	height := int(glyph.Height + 6)
 
 	img := image.NewRGBA(image.Rectangle{Min: image.Point{0, 0}, Max: image.Point{width, height}})
 

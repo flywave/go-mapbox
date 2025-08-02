@@ -17,7 +17,7 @@ func TestSlice(t *testing.T) {
 
 func TestDEM(t *testing.T) {
 	var terrain *DEMData
-	if fuji, err := LoadDEMData("../../tests/fuji.png", DEM_ENCODING_MAPBOX); err != nil {
+	if fuji, err := LoadDEMData("../data/fuji.png", DEM_ENCODING_MAPBOX); err != nil {
 		t.Error(err)
 	} else {
 		terrain = fuji
@@ -30,11 +30,11 @@ func TestDEM(t *testing.T) {
 	if len(data) != 512*512 {
 		t.Error("error")
 	}
-	if err := terrain.Save("../../tests/fuji1.png"); err != nil {
+	if err := terrain.Save("../data/fuji1.png"); err != nil {
 		t.Error(err)
 	}
-	if _, err := os.Stat("../../tests/fuji1.png"); err == nil {
-		if err := os.Remove("../../tests/fuji1.png"); err != nil {
+	if _, err := os.Stat("../data/fuji1.png"); err == nil {
+		if err := os.Remove("../data/fuji1.png"); err != nil {
 			t.Fail()
 		}
 	}

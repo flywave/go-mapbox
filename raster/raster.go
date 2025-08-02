@@ -46,7 +46,7 @@ func LoadDEMDataWithStream(f io.Reader, encoding int) (*DEMData, error) {
 	}
 	rect := m.Bounds()
 	if rect.Dx() != rect.Dy() {
-		return nil, errors.New("image format error!")
+		return nil, errors.New("image format error")
 	}
 
 	data := make([][4]byte, rect.Dx()*rect.Dy())
@@ -109,15 +109,17 @@ func (d *DEMData) BackfillBorder(data DEMData, dx int, dy int) {
 	yMin := dy * d.Dim
 	yMax := dy*d.Dim + d.Dim
 
-	if dx == -1 {
+	switch dx {
+	case -1:
 		xMin = xMax - 1
-	} else if dx == 1 {
+	case 1:
 		xMax = xMin + 1
 	}
 
-	if dy == -1 {
+	switch dy {
+	case -1:
 		yMin = yMax - 1
-	} else if dy == 1 {
+	case 1:
 		yMax = yMin + 1
 	}
 

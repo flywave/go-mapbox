@@ -314,9 +314,9 @@ func (tileset *DB) ReadGrid(z uint8, x uint64, y uint64, data *[]byte) error {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		err := rows.Scan(&key, &value)
-		if err != nil {
-			return fmt.Errorf("could not fetch grid data: %v", err)
+		cerr := rows.Scan(&key, &value)
+		if cerr != nil {
+			return fmt.Errorf("could not fetch grid data: %v", cerr)
 		}
 		valuejson := make(map[string]interface{})
 		json.Unmarshal(value, &valuejson)
@@ -380,8 +380,8 @@ func (ts *DB) GetMetadata() (*Metadata, error) {
 
 	var key, value string
 	for rows.Next() {
-		if err := rows.Scan(&key, &value); err != nil {
-			return nil, err
+		if cerr := rows.Scan(&key, &value); cerr != nil {
+			return nil, cerr
 		}
 
 		switch key {
@@ -428,8 +428,8 @@ func (ts *DB) GetMetadata() (*Metadata, error) {
 
 	if md.MaxZoom == 0 {
 		var min, max string
-		if err := ts.db.QueryRow("SELECT min(zoom_level), max(zoom_level) FROM tiles").Scan(&min, &max); err != nil {
-			return nil, err
+		if cerr := ts.db.QueryRow("SELECT min(zoom_level), max(zoom_level) FROM tiles").Scan(&min, &max); cerr != nil {
+			return nil, cerr
 		}
 
 		md.MinZoom, err = strconv.Atoi(min)

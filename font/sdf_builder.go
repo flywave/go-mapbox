@@ -71,9 +71,10 @@ func (b *SDFBuilder) Glyphs(min int, max int) *Glyphs {
 	rng := fmt.Sprintf("%d-%d", min, max)
 	fontFamily := b.Font.Name(truetype.NameIDFontFullName)
 
-	stack := &Fontstack{}
-	stack.Range = &rng
-	stack.Name = &fontFamily
+	stack := &Fontstack{
+		Name:  fontFamily,
+		Range: rng,
+	}
 
 	for i := min; i < max; i++ {
 		g := b.Glyph(rune(i))
@@ -121,19 +122,19 @@ func (b *SDFBuilder) Glyph(x rune) *Glyph {
 	a := uint32(advance.Floor())
 
 	g := &Glyph{
-		Id:      &id,
-		Width:   &width,
-		Height:  &height,
-		Left:    &left,
-		Top:     &top,
-		Advance: &a,
+		ID:      id,
+		Width:   width,
+		Height:  height,
+		Left:    left,
+		Top:     top,
+		Advance: a,
 	}
 
-	w := int(*g.Width) + buffer*2
-	h := int(*g.Height) + buffer*2
+	w := int(g.Width) + buffer*2
+	h := int(g.Height) + buffer*2
 
 	dst := image.NewRGBA(image.Rect(0, 0, w, h))
-	draw.DrawMask(dst, dst.Bounds(), &image.Uniform{image.Black}, image.ZP, mask, maskp.Sub(image.Pt(buffer, buffer)), draw.Over)
+	draw.DrawMask(dst, dst.Bounds(), &image.Uniform{image.Black}, image.Point{}, mask, maskp.Sub(image.Pt(buffer, buffer)), draw.Over)
 
 	g.Bitmap = CalcSDF(dst, 8, 0.25)
 
