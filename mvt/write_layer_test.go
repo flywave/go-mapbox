@@ -1,7 +1,6 @@
 package mvt
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -109,7 +108,7 @@ func TestWriteTile(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	tempFile := filepath.Join(tempDir, "test_layer.mvt")
-	if cerr := ioutil.WriteFile(tempFile, data, 0644); cerr != nil {
+	if cerr := os.WriteFile(tempFile, data, 0644); cerr != nil {
 		t.Fatalf("Failed to write data to temp file: %v", cerr)
 	}
 	(t).Logf("Wrote test data to temp file: %s", tempFile)

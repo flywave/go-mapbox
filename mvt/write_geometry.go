@@ -178,7 +178,6 @@ func assert_winding_order(coord [][]int32, exp_orient string) [][]int32 {
 		orientation = "counter"
 	}
 
-	println("Calculated orientation:", orientation, "Expected:", exp_orient)
 	if orientation != exp_orient {
 		return reverse(coord)
 	} else {

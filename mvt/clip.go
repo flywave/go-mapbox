@@ -2,8 +2,8 @@ package mvt
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math"
+	"os"
 
 	"github.com/flywave/go-geom/general"
 	m "github.com/flywave/go-mapbox/tileid"
@@ -246,7 +246,7 @@ func clip(geom_ geom.GeometryData, k1, k2 float64, axis int) geom.GeometryData {
 func IsEmpty(geom geom.GeometryData) bool {
 	switch geom.Type {
 	case "Point":
-		return true
+		return len(geom.Point) == 0
 	case "MultiPoint":
 		return len(geom.MultiPoint) == 0
 	case "LineString":
@@ -280,7 +280,7 @@ func PointClipAboutTile(feature *geom.Feature, tileid m.TileID) *geom.Feature {
 			}
 		}
 		if len(newpoints) > 0 {
-			if len(newpoints) == 0 {
+			if len(newpoints) == 1 {
 				newfeature := geom.NewPointFeature(newpoints[0])
 				newfeature.Properties = feature.Properties
 				newfeature.Properties["TILEID"] = tileid
@@ -311,7 +311,7 @@ func PointClipAboutZoom(feature *geom.Feature, zoom int) map[m.TileID]*geom.Feat
 		totalmap := map[m.TileID]*geom.Feature{}
 		for k, newpoints2 := range newpoints {
 			if len(newpoints2) > 0 {
-				if len(newpoints2) == 0 {
+				if len(newpoints2) == 1 {
 					newfeature := geom.NewPointFeature(newpoints2[0])
 					newfeature.Properties = feature.Properties
 					newfeature.Properties["TILEID"] = k
@@ -506,7 +506,7 @@ func ClipFeature(feature *geom.Feature, endzoom int, keep_parents bool) map[m.Ti
 }
 
 func ReadFeatures(filename string) []*geom.Feature {
-	bs, _ := ioutil.ReadFile(filename)
+	bs, _ := os.ReadFile(filename)
 	fc, _ := general.UnmarshalFeatureCollection(bs)
 	return fc.Features
 }
@@ -516,7 +516,7 @@ func MakeFeatures(feats []*geom.Feature, filename string) {
 	fc.Features = feats
 	s, err := fc.MarshalJSON()
 	fmt.Println(err)
-	ioutil.WriteFile(filename, s, 0677)
+	os.WriteFile(filename, s, 0677)
 }
 
 func NewFeature(geom_ geom.GeometryData, props map[string]interface{}) *geom.Feature {
