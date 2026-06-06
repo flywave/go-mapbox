@@ -157,7 +157,7 @@ func (g *Glyph) ReadPBF(r *pbf.Reader) error {
 				g.Advance = uint32(r.ReadUInt32())
 			}
 		default:
-			return nil
+			skipField(r, typ)
 		}
 	}
 
@@ -170,8 +170,6 @@ func (g *Glyph) WritePBF(w *pbf.Writer) error {
 
 	if len(g.Bitmap) > 0 {
 		w.WriteString(pbf.TagType(FontProto.Glyph.Bitmap), string(g.Bitmap))
-	} else {
-		w.WriteString(pbf.TagType(FontProto.Glyph.Bitmap), "")
 	}
 
 	w.WriteUInt32(pbf.TagType(FontProto.Glyph.Width), (g.Width))

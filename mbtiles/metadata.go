@@ -2,6 +2,7 @@ package mbtiles
 
 import (
 	"encoding/json"
+	"errors"
 	"strconv"
 	"strings"
 )
@@ -207,10 +208,17 @@ func tileSizeToString(ts [2]int) string {
 }
 
 func stringToTileSize(str string) (tilesize *[2]int, err error) {
+	parts := strings.Split(str, ",")
+	if len(parts) != 2 {
+		return nil, errors.New("tile_size must have exactly 2 values")
+	}
 	tilesize = new([2]int)
-	for i, v := range strings.Split(str, ",") {
+	for i, v := range parts {
 		var i64 int64
 		i64, err = strconv.ParseInt(strings.TrimSpace(v), 10, 64)
+		if err != nil {
+			return nil, err
+		}
 		tilesize[i] = int(i64)
 	}
 

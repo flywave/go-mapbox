@@ -1,61 +1,121 @@
 package fonts
 
 import (
-	"fmt"
 	"os"
-	"strconv"
 	"testing"
 
 	"github.com/flywave/freetype/truetype"
 	"github.com/flywave/go-pbf"
-	"github.com/stretchr/testify/require"
 )
 
-func builderFor(fontFamily string) *SDFBuilder {
-	ttf, err := os.ReadFile("../data/fonts/" + fontFamily + ".ttf")
-	if err != nil {
-		panic(err)
-	}
+func fontPath(family string) string {
+	return "../data/fonts/" + family + ".ttf"
+}
 
+func TestSDFBuilder_Creation(t *testing.T) {
+	ttf, err := os.ReadFile(fontPath("NotoSans-Regular"))
+	if err != nil {
+		t.Skip("NotoSans-Regular.ttf not found, skipping")
+	}
 	font, err := truetype.Parse(ttf)
-
 	if err != nil {
-		panic(err)
+		t.Fatalf("parse font: %v", err)
 	}
-
-	return NewSDFBuilder(font, SDFBuilderOpt{FontSize: 24, Buffer: 3})
+	b := NewSDFBuilder(font, SDFBuilderOpt{FontSize: 24, Buffer: 3})
+	if b.FontSize != 24 {
+		t.Fatalf("FontSize = %f", b.FontSize)
+	}
+	if b.Buffer != 3 {
+		t.Fatalf("Buffer = %f", b.Buffer)
+	}
+	if b.Face == nil {
+		t.Fatal("Face is nil")
+	}
 }
 
 func TestSDFBuilder_Glyph(t *testing.T) {
-	builder := builderFor("NotoSans-Regular")
+	ttf, err := os.ReadFile(fontPath("NotoSans-Regular"))
+	if err != nil {
+		t.Skip("NotoSans-Regular.ttf not found, skipping")
+	}
+	font, err := truetype.Parse(ttf)
+	if err != nil {
+		t.Fatalf("parse font: %v", err)
+	}
+	b := NewSDFBuilder(font, SDFBuilderOpt{FontSize: 24, Buffer: 3})
 
-	for i := 0; i < 255; i++ {
-		g := builder.Glyph(rune(i))
-		if g != nil {
-			fmt.Printf("%s %d\n", strconv.Itoa(int(g.ID)), g.Top)
-			img := DrawGlyph(g, true)
-			os.MkdirAll("../data/fonts/data/NotoSans", os.ModePerm)
-			SavePNG(fmt.Sprintf("../data/fonts/data/NotoSans/%d.png", i), img)
-		}
+	g := b.Glyph('A')
+	if g == nil {
+		t.Fatal("Glyph('A') returned nil")
+	}
+	if g.ID != 65 {
+		t.Errorf("ID = %d, want 65", g.ID)
+	}
+	if g.Width == 0 || g.Height == 0 {
+		t.Errorf("zero dimensions: %dx%d", g.Width, g.Height)
+	}
+	if len(g.Bitmap) == 0 {
+		t.Error("empty SDF bitmap")
 	}
 }
 
-func TestSDFBuilder(t *testing.T) {
-	t.Run("#Glyphs", func(t *testing.T) {
-		builder := builderFor("NotoSans-Regular")
+func TestSDFBuilder_GlyphNil(t *testing.T) {
+	ttf, err := os.ReadFile(fontPath("NotoSans-Regular"))
+	if err != nil {
+		t.Skip("NotoSans-Regular.ttf not found, skipping")
+	}
+	font, err := truetype.Parse(ttf)
+	if err != nil {
+		t.Fatalf("parse font: %v", err)
+	}
+	b := NewSDFBuilder(font)
 
-		for _, rng := range [][]int{
-			{0, 255},
-			{20224, 20479},
-			{22784, 23039},
-		} {
-			s := builder.Glyphs(rng[0], rng[1])
-			w := pbf.NewWriter()
-			if err := s.WritePBF(w); err != nil {
-				require.NoError(t, err)
-			}
-			bytes := w.Finish()
-			os.WriteFile(fmt.Sprintf("../data/fonts/data/NotoSans/%d-%d.pbf", rng[0], rng[1]), bytes, os.ModePerm)
-		}
-	})
+	if g := b.Glyph(0); g != nil {
+		t.Error("Glyph(0) should be nil")
+	}
+}
+
+func TestSDFBuilder_GlyphsPBF(t *testing.T) {
+	ttf, err := os.ReadFile(fontPath("NotoSans-Regular"))
+	if err != nil {
+		t.Skip("NotoSans-Regular.ttf not found, skipping")
+	}
+	font, err := truetype.Parse(ttf)
+	if err != nil {
+		t.Fatalf("parse font: %v", err)
+	}
+	b := NewSDFBuilder(font, SDFBuilderOpt{FontSize: 24, Buffer: 3})
+
+	gs := b.Glyphs(65, 70)
+	if gs == nil {
+		t.Fatal("Glyphs returned nil")
+	}
+	if len(gs.Stacks) != 1 {
+		t.Fatalf("expected 1 stack, got %d", len(gs.Stacks))
+	}
+	stack := gs.Stacks[0]
+	if stack.Range != "65-69" {
+		t.Errorf("Range = %q, want 65-69", stack.Range)
+	}
+	if len(stack.Glyphs) != 5 {
+		t.Fatalf("expected 5 glyphs, got %d", len(stack.Glyphs))
+	}
+
+	w := pbf.NewWriter()
+	if err := gs.WritePBF(w); err != nil {
+		t.Fatalf("WritePBF: %v", err)
+	}
+	buf := w.Finish()
+
+	r := pbf.NewReader(buf)
+	read := &Glyphs{}
+	if err := read.ReadPBF(r); err != nil {
+		t.Fatalf("ReadPBF: %v", err)
+	}
+	if len(read.Stacks) != 1 {
+		t.Fatal("round-trip: expected 1 stack")
+	}
+	if len(read.Stacks[0].Glyphs) != 5 {
+		t.Fatalf("round-trip: expected 5 glyphs, got %d", len(read.Stacks[0].Glyphs))
+	}
 }

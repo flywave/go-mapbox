@@ -186,6 +186,9 @@ func assert_winding_order(coord [][]int32, exp_orient string) [][]int32 {
 }
 
 func SignedArea2(ring [][]int32) float64 {
+	if len(ring) == 0 {
+		return 0
+	}
 	weight := 0.0
 	lenn := len(ring)
 	firstpt := ring[0]
@@ -282,11 +285,11 @@ func (cur *Cursor) SinglePoint(point []float64) []int32 {
 
 	if cur.ExtentBool {
 		if xval >= cur.Extent {
-			xval = cur.Extent
+			xval = cur.Extent - 1
 		}
 
 		if yval >= cur.Extent {
-			yval = cur.Extent
+			yval = cur.Extent - 1
 		}
 
 		if xval < 0 {

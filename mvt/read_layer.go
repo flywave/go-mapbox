@@ -69,6 +69,11 @@ func (tile *Tile) NewLayer(endpos int, pt ProtoType) {
 			layer.Version = int(tile.Buf.ReadVarint())
 			key, val = tile.Buf.ReadTag()
 		}
+		if tile.Buf.Pos < layer.EndPos && !(key == proto.Layer.Name || key == proto.Layer.Features ||
+			key == proto.Layer.Keys || key == proto.Layer.Values ||
+			key == proto.Layer.Extent || key == proto.Layer.Version) {
+			key, val = tile.Buf.ReadTag()
+		}
 	}
 
 	if layer.Extent == 0 {

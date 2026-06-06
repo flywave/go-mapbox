@@ -42,12 +42,18 @@ func (p *GrowingPacker) Fit(blocks []*Node) {
 		}
 
 		fit := p.growNode(block.Width, block.Height)
+		if fit == nil {
+			continue
+		}
 		block.X = fit.X
 		block.Y = fit.Y
 	}
 }
 
 func findNode(root *Node, width, height int) *Node {
+	if root == nil {
+		return nil
+	}
 	if root.Used {
 		n := findNode(root.Right, width, height)
 		if n != nil {

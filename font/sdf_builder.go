@@ -68,7 +68,7 @@ func (b *SDFBuilder) Init() {
 }
 
 func (b *SDFBuilder) Glyphs(min int, max int) *Glyphs {
-	rng := fmt.Sprintf("%d-%d", min, max)
+	rng := fmt.Sprintf("%d-%d", min, max-1)
 	fontFamily := b.Font.Name(truetype.NameIDFontFullName)
 
 	stack := &Fontstack{

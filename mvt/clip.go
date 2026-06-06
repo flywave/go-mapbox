@@ -32,28 +32,28 @@ func NewSlice(axis int) *Slice {
 }
 
 func (slice *Slice) IntersectX(ax, ay, bx, by, x float64) float64 {
-	t := (x - ax) / (bx - ax)
-	if (bx - ax) == 0 {
+	dx := bx - ax
+	if dx == 0 {
 		slice.Slice = append(slice.Slice, []float64{x, ay})
 		slice.Pos += 1
 		return 0.0
-	} else {
-		slice.Slice = append(slice.Slice, []float64{x, ay + (by-ay)*t})
-		slice.Pos += 1
 	}
+	t := (x - ax) / dx
+	slice.Slice = append(slice.Slice, []float64{x, ay + (by-ay)*t})
+	slice.Pos += 1
 	return t
 }
 
 func (slice *Slice) IntersectY(ax, ay, bx, by, y float64) float64 {
-	t := (y - ay) / (by - ay)
-	if (by - ay) == 0 {
+	dy := by - ay
+	if dy == 0 {
 		slice.Slice = append(slice.Slice, []float64{ax, y})
 		slice.Pos += 1
 		return 0.0
-	} else {
-		slice.Slice = append(slice.Slice, []float64{ax + (bx-ax)*t, y})
-		slice.Pos += 1
 	}
+	t := (y - ay) / dy
+	slice.Slice = append(slice.Slice, []float64{ax + (bx-ax)*t, y})
+	slice.Pos += 1
 	return t
 }
 

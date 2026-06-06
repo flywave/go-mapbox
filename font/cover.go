@@ -43,11 +43,11 @@ type LanguageCodePoints struct {
 	Codepoints CodePoints `json:"codepoints"`
 }
 
-type FontConverage struct {
+type FontCoverage struct {
 	languages []*LanguageCodePoints
 }
 
-func (c *FontConverage) coverage(pointsArray [][]uint32) ([]*LanguageCoverage, error) {
+func (c *FontCoverage) coverage(pointsArray [][]uint32) ([]*LanguageCoverage, error) {
 	lang_coverages := make([]*LanguageCoverage, len(c.languages))
 
 	for i, language := range c.languages {
@@ -81,7 +81,7 @@ func (c *FontConverage) coverage(pointsArray [][]uint32) ([]*LanguageCoverage, e
 	return lang_coverages, nil
 }
 
-func (c *FontConverage) Coverage(ttfs ...[]byte) ([]*LanguageCoverage, error) {
+func (c *FontCoverage) Coverage(ttfs ...[]byte) ([]*LanguageCoverage, error) {
 	points := make([][]uint32, len(ttfs))
 	for i, ttf := range ttfs {
 		font, err := truetype.Parse(ttf)
@@ -96,7 +96,7 @@ func (c *FontConverage) Coverage(ttfs ...[]byte) ([]*LanguageCoverage, error) {
 	return c.coverage(points)
 }
 
-func (c *FontConverage) CoverageTTFS(ttfs ...*truetype.Font) ([]*LanguageCoverage, error) {
+func (c *FontCoverage) CoverageTTFS(ttfs ...*truetype.Font) ([]*LanguageCoverage, error) {
 	points := make([][]uint32, len(ttfs))
 	for i, font := range ttfs {
 		unicode := font.Unicodes()
@@ -107,8 +107,8 @@ func (c *FontConverage) CoverageTTFS(ttfs ...*truetype.Font) ([]*LanguageCoverag
 	return c.coverage(points)
 }
 
-func NewFontCoverage(data []byte) (*FontConverage, error) {
-	c := FontConverage{}
+func NewFontCoverage(data []byte) (*FontCoverage, error) {
+	c := FontCoverage{}
 	decode := json.NewDecoder(bytes.NewReader(data))
 
 	err := decode.Decode(&c.languages)

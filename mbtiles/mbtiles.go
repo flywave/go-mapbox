@@ -37,17 +37,17 @@ const (
 )
 
 var formatStrings = [...]string{
-	"",
-	"pbf",
-	"png",
-	"jpg",
-	"webp",
-	"gzib",
-	"zlib",
-	"lerc",
-	"tiff",
-	"terrain",
-	"tif",
+	"",       // UNKNOWN
+	"gzip",   // GZIP
+	"zlib",   // ZLIB
+	"png",    // PNG
+	"jpg",    // JPG
+	"pbf",    // PBF
+	"webp",   // WEBP
+	"lerc",   // LERC
+	"tiff",   // TIFF
+	"terrain", // TERRAIN
+	"tif",    // TIF
 }
 
 func (t TileFormat) String() string {
@@ -506,18 +506,24 @@ func (tileset *DB) Close() error {
 }
 
 func detectTileFormat(data *[]byte) (TileFormat, error) {
+	if data == nil || len(*data) == 0 {
+		return UNKNOWN, errors.New("empty data")
+	}
 	patterns := map[TileFormat][][]byte{
 		GZIP: {[]byte("\x1f\x8b")},
 		ZLIB: {[]byte("\x78\x9c")},
 		PNG:  {[]byte("\x89\x50\x4E\x47\x0D\x0A\x1A\x0A")},
 		JPG:  {[]byte("\xFF\xD8\xFF")},
-		WEBP: {[]byte("\x52\x49\x46\x46\xc0\x00\x00\x00\x57\x45\x42\x50\x56\x50")},
+		WEBP: {[]byte("\x52\x49\x46\x46"), []byte("\x57\x45\x42\x50")},
 		LERC: {[]byte("\x43\x6E\x74\x5A\x49\x6D\x61\x67\x65\x20"), []byte("\x4C\x65\x72\x63\x32\x20")},
 		TIFF: {[]byte("\x4D\x4D"), []byte("\x49\x49")},
 	}
 
 	for format, pattern := range patterns {
 		for _, p := range pattern {
+			if len(p) == 4 && string(p) == "WEBP" && len(*data) >= 12 && string((*data)[:4]) == "RIFF" && string((*data)[8:12]) == "WEBP" {
+				return format, nil
+			}
 			if bytes.HasPrefix(*data, p) {
 				return format, nil
 			}
@@ -536,7 +542,7 @@ func detectTileFormat(data *[]byte) (TileFormat, error) {
 	}
 
 	if header.CenterX == header.BoundingSphereCenterX && header.CenterY == header.BoundingSphereCenterY && header.CenterZ == header.BoundingSphereCenterZ {
-		return TERRAIN, err
+		return TERRAIN, nil
 	}
 
 	return UNKNOWN, errors.New("could not detect tile format")

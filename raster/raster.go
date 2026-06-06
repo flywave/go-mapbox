@@ -40,6 +40,9 @@ type DEMData struct {
 }
 
 func LoadDEMDataWithStream(f io.Reader, encoding int) (*DEMData, error) {
+	if f == nil {
+		return nil, errors.New("reader is nil")
+	}
 	m, _, err := image.Decode(f)
 	if err != nil {
 		return nil, err
@@ -70,10 +73,13 @@ func LoadDEMData(path string, encoding int) (*DEMData, error) {
 }
 
 func NewDEMData(data [][4]byte, encoding int) *DEMData {
-	if len(data)%2 != 0 {
+	if len(data) == 0 {
 		return nil
 	}
 	dim := int(math.Sqrt(float64(len(data))))
+	if dim*dim != len(data) {
+		return nil
+	}
 	stride := dim + 2
 	img := make([][4]byte, stride*stride)
 	for r := 0; r < dim; r++ {
@@ -207,7 +213,7 @@ func (p *TerrariumPacker) Pack(h float64) [4]byte {
 	val := h + UNPACK_TERRARIUM[3]
 	r := math.Floor(val / 256)
 	g := int(val) % 256
-	b := int(val*256) % 25
+	b := int(val*256) % 256
 	var image [4]byte
 	image[0] = byte(r)
 	image[1] = byte(g)

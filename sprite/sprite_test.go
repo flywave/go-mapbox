@@ -1,118 +1,142 @@
 package sprite
 
 import (
-	"fmt"
 	"image"
 	"image/color"
-	"image/draw"
-	"image/png"
-	"log"
-	"math/rand"
-	"os"
-	"path/filepath"
 	"testing"
-
-	"github.com/stretchr/testify/require"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
-	"golang.org/x/image/math/fixed"
 )
 
-func TestGenerateSprite(t *testing.T) {
-	textures := make([]Texture, 0)
+type testTexture struct {
+	id         string
+	name       string
+	width      int
+	height     int
+	pixelRatio int
+	img        image.Image
+}
 
-	for i := 0; i < 20; i++ {
-		size := rand.Intn(32) + 32
-		pixelRatio := i%2 + 1
-		name := fmt.Sprintf("%d", i)
+func (t *testTexture) TextureId() *string        { return &t.id }
+func (t *testTexture) TextureName() string        { return t.name }
+func (t *testTexture) TextureWidth() int           { return t.width }
+func (t *testTexture) TextureHeight() int          { return t.height }
+func (t *testTexture) TexturePixelRatio() int      { return t.pixelRatio }
+func (t *testTexture) TextureImage() image.Image   { return t.img }
 
-		img := image.NewRGBA(image.Rect(0, 0, size, size))
-
-		c := color.RGBA{uint8(rand.Intn(255)), uint8(rand.Intn(255)), uint8(rand.Intn(255)), 255}
-
-		draw.Draw(img, img.Bounds(), &image.Uniform{c}, image.ZP, draw.Src)
-
-		addLabel(img, 2, 10, fmt.Sprintf("%s@%dx", name, pixelRatio))
-		addLabel(img, 2, 20, fmt.Sprintf("%d,%d", size, size))
-
-		textures = append(textures, &TextureTest{
-			Id:         "id",
-			SymbolName: name,
-			Image:      img,
-			PixelRatio: pixelRatio,
-		})
-	}
-
-	{
-		_, img, err := GenerateSprite(textures, 2, true)
-		require.NoError(t, err)
-		SavePNG("../data/test@2x.png", img)
-	}
-
-	{
-		_, img, err := GenerateSprite(textures, 1, true)
-		require.NoError(t, err)
-		SavePNG("../data/test.png", img)
+func newTestTexture(name string, w, h, pr int) *testTexture {
+	return &testTexture{
+		id: name, name: name,
+		width: w, height: h, pixelRatio: pr,
+		img: image.NewUniform(color.RGBA{255, 0, 0, 255}),
 	}
 }
 
-func addLabel(img *image.RGBA, x, y int, label string) {
-	col := color.RGBA{0, 0, 0, 255}
-	point := fixed.Point26_6{X: fixed.Int26_6(x * 64), Y: fixed.Int26_6(y * 64)}
-
-	d := &font.Drawer{
-		Dst:  img,
-		Src:  image.NewUniform(col),
-		Face: basicfont.Face7x13,
-		Dot:  point,
+func TestGenerateSprite_NoRender(t *testing.T) {
+	textures := []Texture{
+		newTestTexture("a", 32, 32, 1),
+		newTestTexture("b", 64, 64, 1),
 	}
-
-	d.DrawString(label)
-}
-
-type TextureTest struct {
-	Id         string
-	SymbolName string
-	PixelRatio int
-	image.Image
-}
-
-func (m *TextureTest) TextureId() *string {
-	return &m.Id
-}
-
-func (m *TextureTest) TexturePixelRatio() int {
-	return m.PixelRatio
-}
-
-func (m *TextureTest) TextureName() string {
-	return m.SymbolName
-}
-
-func (m *TextureTest) TextureImage() image.Image {
-	return m.Image
-}
-
-func (m *TextureTest) TextureWidth() int {
-	return m.Image.Bounds().Size().X
-}
-
-func (m *TextureTest) TextureHeight() int {
-	return m.Image.Bounds().Size().Y
-}
-
-func SavePNG(path string, img image.Image) {
-	err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	set, img, err := GenerateSprite(textures, 1, false)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
-	f, err := os.Create(path)
-	if err != nil {
-		log.Fatal(err)
+	if img != nil {
+		t.Fatal("expected nil image when renderImage=false")
 	}
-	defer f.Close()
-	err = png.Encode(f, img)
+	if len(set) != 2 {
+		t.Fatalf("expected 2 sprites, got %d", len(set))
+	}
+	if set["a"] == nil || set["b"] == nil {
+		t.Fatal("missing sprite entries")
+	}
+}
+
+func TestGenerateSprite_WithRender(t *testing.T) {
+	textures := []Texture{
+		newTestTexture("a", 32, 32, 1),
+		newTestTexture("b", 16, 16, 1),
+	}
+	set, img, err := GenerateSprite(textures, 1, true)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
+	}
+	if img == nil {
+		t.Fatal("expected non-nil image when renderImage=true")
+	}
+	if len(set) != 2 {
+		t.Fatalf("expected 2 sprites, got %d", len(set))
+	}
+	bounds := img.Bounds()
+	if bounds.Dx() == 0 || bounds.Dy() == 0 {
+		t.Fatal("sprite image has zero dimensions")
+	}
+}
+
+func TestGenerateSprite_Empty(t *testing.T) {
+	set, img, err := GenerateSprite(nil, 1, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if set == nil {
+		t.Fatal("expected non-nil set")
+	}
+	if img == nil {
+		t.Fatal("expected non-nil image even for empty input")
+	}
+}
+
+func TestGenerateSprite_PixelRatioScaling(t *testing.T) {
+	// Texture at 2x pixel ratio, target 1x
+	textures := []Texture{
+		newTestTexture("a", 64, 64, 2),
+	}
+	set, _, err := GenerateSprite(textures, 1, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts := set["a"]
+	if ts == nil {
+		t.Fatal("missing sprite")
+	}
+	// Should be scaled down: 64/2 = 32
+	if ts.Width != 32 || ts.Height != 32 {
+		t.Fatalf("expected 32x32 after scale, got %dx%d", ts.Width, ts.Height)
+	}
+	if ts.PixelRatio != 1 {
+		t.Fatalf("expected pixelRatio=1, got %d", ts.PixelRatio)
+	}
+}
+
+func TestTextureMeta_ScaleTo(t *testing.T) {
+	tm := &TextureMeta{Name: "test", Width: 200, Height: 100, PixelRatio: 2}
+	scaled := tm.ScaleTo(1)
+	if scaled.Width != 100 || scaled.Height != 50 {
+		t.Fatalf("expected 100x50, got %dx%d", scaled.Width, scaled.Height)
+	}
+	if scaled.PixelRatio != 1 {
+		t.Fatalf("PixelRatio = %d", scaled.PixelRatio)
+	}
+	// Scale up
+	scaled2 := tm.ScaleTo(4)
+	if scaled2.Width != 400 || scaled2.Height != 200 {
+		t.Fatalf("expected 400x200, got %dx%d", scaled2.Width, scaled2.Height)
+	}
+}
+
+func TestTextureSprite_String(t *testing.T) {
+	ts := &TextureSprite{
+		TextureMeta: &TextureMeta{Name: "test", Width: 32, Height: 32, PixelRatio: 1},
+		X: 10, Y: 20,
+	}
+	s := ts.String()
+	if s == "" {
+		t.Fatal("expected non-empty string")
+	}
+}
+
+func TestTextureMeta_String(t *testing.T) {
+	tm := &TextureMeta{Name: "icon", Width: 64, Height: 64, PixelRatio: 2}
+	s := tm.String()
+	if s == "" {
+		t.Fatal("expected non-empty string")
 	}
 }

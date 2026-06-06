@@ -45,7 +45,7 @@ replace github.com/flywave/go-proj => ../go-proj
 
 replace github.com/flywave/go-geoid => ../go-geoid
 
-replace githcub.com/flywave/freetype => ../freetype
+replace github.com/flywave/freetype => ../freetype
 
 replace github.com/flywave/go-geo => ../go-geo
 

@@ -1,39 +1,23 @@
 package tilejson
 
-import "time"
-
-type SortBy string
-
-const (
-	SortByCreated  SortBy = "created"
-	SortByModified SortBy = "modified"
+import (
+	"fmt"
+	"time"
 )
 
-const TileJSONVersion = "2.2.0"
+// TileJSON version constants.
+const (
+	SpecVersion    = "3.0.0"
+	DefaultVersion = "1.0.0"
+)
 
-type TilesetType string
-
+// Tileset type constants.
 const (
 	VectorTileset TilesetType = "vector"
 	RasterTileset TilesetType = "raster"
 )
 
-type TilesetVisibility string
-
-const (
-	PublicTileset  TilesetVisibility = "public"
-	PrivateTileset TilesetVisibility = "private"
-)
-
-type ListTilesetsParams struct {
-	Type       *TilesetType
-	Visibility *TilesetVisibility
-	SortBy     *SortBy
-	Limit      *int
-}
-
-type GeomType string
-
+// Geometry type constants.
 const (
 	GeomTypePoint   GeomType = "point"
 	GeomTypeLine    GeomType = "line"
@@ -41,29 +25,72 @@ const (
 	GeomTypeUnknown GeomType = "unknown"
 )
 
+// Scheme constants.
 const (
-	SchemeXYZ  = "xyz"
-	SchemeTMLS = "tms"
+	SchemeXYZ = "xyz"
+	SchemeTMS = "tms"
 )
 
-type FieldType string
-
+// Field type constants.
 const (
 	FieldTypeString  FieldType = "String"
 	FieldTypeNumber  FieldType = "Number"
 	FieldTypeBoolean FieldType = "Boolean"
 )
 
-func NewTileBounds(minLon, minLat, maxLon, maxLat float64) *[4]float64 {
-	v := [4]float64{minLon, minLat, maxLon, maxLat}
-	return &v
+// Accessor constants.
+const (
+	SortByCreated  SortBy = "created"
+	SortByModified SortBy = "modified"
+)
+
+// Visibility constants.
+const (
+	PublicTileset  TilesetVisibility = "public"
+	PrivateTileset TilesetVisibility = "private"
+)
+
+type (
+	SortBy             string
+	TilesetType        string
+	TilesetVisibility  string
+	GeomType           string
+	FieldType          string
+)
+
+// TileJSON implements the TileJSON 3.0.0 specification.
+// See https://github.com/mapbox/tilejson-spec
+type TileJSON struct {
+	TileJSON     string         `json:"tilejson"`
+	Tiles        []string       `json:"tiles"`
+	VectorLayers []VectorLayer  `json:"vector_layers,omitempty"`
+
+	Attribution  *string        `json:"attribution,omitempty"`
+	Bounds       *[4]float64    `json:"bounds,omitempty"`
+	Center       *[3]float64    `json:"center,omitempty"`
+	Data         []string       `json:"data,omitempty"`
+	Description  *string        `json:"description,omitempty"`
+	FillZoom     *int           `json:"fillzoom,omitempty"`
+	Grids        []string       `json:"grids,omitempty"`
+	Legend       *string        `json:"legend,omitempty"`
+	MaxZoom      *int           `json:"maxzoom,omitempty"`
+	MinZoom      *int           `json:"minzoom,omitempty"`
+	Name         *string        `json:"name,omitempty"`
+	Scheme       string         `json:"scheme,omitempty"`
+	Template     *string        `json:"template,omitempty"`
+	Version      string         `json:"version,omitempty"`
 }
 
-func NewTileCenter(lon, lat float64, zoom float64) *[3]float64 {
-	v := [3]float64{lon, lat, zoom}
-	return &v
+// VectorLayer describes a layer of vector tile data.
+type VectorLayer struct {
+	ID          string              `json:"id"`
+	Fields      map[string]string   `json:"fields"`
+	Description *string             `json:"description,omitempty"`
+	MinZoom     *int                `json:"minzoom,omitempty"`
+	MaxZoom     *int                `json:"maxzoom,omitempty"`
 }
 
+// Tileset is a Mapbox API tileset listing entry.
 type Tileset struct {
 	Type        string     `json:"type,omitempty"`
 	Center      [3]float64 `json:"center,omitempty"`
@@ -77,39 +104,89 @@ type Tileset struct {
 	Status      string     `json:"status,omitempty"`
 }
 
-type TileJSON struct {
-	Id           string        `json:"id"`
-	Attribution  *string       `json:"attribution"`
-	Bounds       [4]float64    `json:"bounds"`
-	Center       [3]float64    `json:"center"`
-	Format       string        `json:"format"`
-	MinZoom      uint          `json:"minzoom"`
-	MaxZoom      uint          `json:"maxzoom"`
-	Name         *string       `json:"name"`
-	Description  *string       `json:"description"`
-	Scheme       string        `json:"scheme"`
-	TileJSON     string        `json:"tilejson"`
-	Tiles        []string      `json:"tiles"`
-	Grids        []string      `json:"grids"`
-	Data         []string      `json:"data"`
-	Version      string        `json:"version"`
-	Template     *string       `json:"template"`
-	Legend       *string       `json:"legend"`
-	VectorLayers []VectorLayer `json:"vector_layers,omitempty"`
-	Type         string        `json:"type"`
-	TileSize     uint32        `json:"tileSize"`
+// ListTilesetsParams defines parameters for listing tilesets.
+type ListTilesetsParams struct {
+	Type       *TilesetType
+	Visibility *TilesetVisibility
+	SortBy     *SortBy
+	Limit      *int
 }
 
-type VectorLayer struct {
-	Version      int                  `json:"version"`
-	Extent       int                  `json:"extent"`
-	ID           string               `json:"id"`
-	Source       string               `json:"source"`
-	Name         string               `json:"source_name"`
-	Fields       map[string]FieldType `json:"fields"`
-	FeatureTags  []string             `json:"feature_tags,omitempty"`
-	GeometryType GeomType             `json:"geometry_type,omitempty"`
-	MinZoom      uint                 `json:"minzoom"`
-	MaxZoom      uint                 `json:"maxzoom"`
-	Tiles        []string             `json:"tiles"`
+// ─── Constructors ──────────────────────────────────────────────────────────
+
+// New creates a TileJSON with the required tiles array.
+func New(tiles []string) *TileJSON {
+	return &TileJSON{
+		TileJSON: SpecVersion,
+		Tiles:    tiles,
+		Scheme:   SchemeXYZ,
+		Version:  DefaultVersion,
+	}
+}
+
+// NewTileBounds creates a bounds array [west, south, east, north].
+func NewTileBounds(minLon, minLat, maxLon, maxLat float64) *[4]float64 {
+	return &[4]float64{minLon, minLat, maxLon, maxLat}
+}
+
+// NewTileCenter creates a center array [lon, lat, zoom].
+func NewTileCenter(lon, lat float64, zoom int) *[3]float64 {
+	return &[3]float64{lon, lat, float64(zoom)}
+}
+
+// AddTile appends a tile endpoint.
+func (t *TileJSON) AddTile(url string) {
+	t.Tiles = append(t.Tiles, url)
+}
+
+// AddVectorLayer adds a vector layer description.
+func (t *TileJSON) AddVectorLayer(vl VectorLayer) {
+	t.VectorLayers = append(t.VectorLayers, vl)
+}
+
+// NewVectorLayer creates a VectorLayer with the required id and fields.
+func NewVectorLayer(id string, fields map[string]string) VectorLayer {
+	return VectorLayer{ID: id, Fields: fields}
+}
+
+// ─── Validation ────────────────────────────────────────────────────────────
+
+func (t *TileJSON) Validate() error {
+	if t.TileJSON != SpecVersion {
+		return fmt.Errorf("tilejson: expected %q, got %q", SpecVersion, t.TileJSON)
+	}
+	if len(t.Tiles) == 0 {
+		return fmt.Errorf("tiles: must contain at least one endpoint")
+	}
+	if t.MinZoom != nil && t.MaxZoom != nil && *t.MinZoom > *t.MaxZoom {
+		return fmt.Errorf("minzoom (%d) > maxzoom (%d)", *t.MinZoom, *t.MaxZoom)
+	}
+	if t.MinZoom != nil && (*t.MinZoom < 0 || *t.MinZoom > 30) {
+		return fmt.Errorf("minzoom (%d) out of range [0, 30]", *t.MinZoom)
+	}
+	if t.MaxZoom != nil && (*t.MaxZoom < 0 || *t.MaxZoom > 30) {
+		return fmt.Errorf("maxzoom (%d) out of range [0, 30]", *t.MaxZoom)
+	}
+	if t.Scheme != "" && t.Scheme != SchemeXYZ && t.Scheme != SchemeTMS {
+		return fmt.Errorf("scheme: expected %q or %q, got %q", SchemeXYZ, SchemeTMS, t.Scheme)
+	}
+	if t.Center != nil {
+		if len(t.Center) != 3 {
+			return fmt.Errorf("center: expected [lon, lat, zoom]")
+		}
+	}
+	if t.Bounds != nil {
+		if len(t.Bounds) != 4 {
+			return fmt.Errorf("bounds: expected [west, south, east, north]")
+		}
+	}
+	for i, vl := range t.VectorLayers {
+		if vl.ID == "" {
+			return fmt.Errorf("vector_layers[%d]: id is required", i)
+		}
+		if vl.Fields == nil {
+			return fmt.Errorf("vector_layers[%d] (%q): fields is required", i, vl.ID)
+		}
+	}
+	return nil
 }

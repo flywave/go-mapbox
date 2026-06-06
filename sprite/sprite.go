@@ -12,9 +12,6 @@ import (
 
 func GenerateSprite(textures []Texture, pixelRatio int, renderImage bool) (map[string]*TextureSprite, image.Image, error) {
 	set := map[string]*TextureSprite{}
-	chDone := make(chan struct{})
-	defer close(chDone)
-
 	blocks := make([]*Node, 0)
 
 	for i := range textures {
