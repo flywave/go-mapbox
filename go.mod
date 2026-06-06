@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.4
 
 require (
-	github.com/flywave/freetype v0.0.0-20200612054648-f2aab071ba59
+	github.com/flywave/freetype v0.0.0-20260602141735-69677ccdff1d
 	github.com/flywave/go-cog v0.0.0-20250314092301-4673589220b8
 	github.com/flywave/go-geom v0.0.0-20250607125323-f685bf20f12c
 	github.com/flywave/go-pbf v0.0.0-20230306063816-5e5b0da27bbd
@@ -45,7 +45,7 @@ replace github.com/flywave/go-proj => ../go-proj
 
 replace github.com/flywave/go-geoid => ../go-geoid
 
-replace github.com/flywave/freetype => ../freetype
+replace githcub.com/flywave/freetype => ../freetype
 
 replace github.com/flywave/go-geo => ../go-geo
 
