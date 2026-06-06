@@ -9,10 +9,6 @@ import (
 )
 
 const (
-	ObjectTypePoint      = "Point"
-	ObjectTypeLineString = "LineString"
-	ObjectTypePolygon    = "Polygon"
-
 	backgroundLayerID = "background"
 )
 
@@ -43,20 +39,76 @@ type MapboxGLStyle struct {
 }
 
 type Style struct {
-	Bearing    float64    `json:"bearing"`
-	Center     []float64  `json:"center"`
-	Glyphs     string     `json:"glyphs"`
-	Layers     []*Layer   `json:"layers"`
-	Light      Light      `json:"light"`
-	Metadata   Metadata   `json:"metadata"`
-	Name       string     `json:"name"`
-	Pitch      float64    `json:"pitch"`
-	Sources    Sources    `json:"sources"`
-	Sprite     string     `json:"sprite"`
-	Transition Transition `json:"transition"`
-	Version    int        `json:"version"`
-	Zoom       float64    `json:"zoom"`
-	ID         string     `json:"id"`
+	Bearing    float64                `json:"bearing,omitempty"`
+	Camera     *Camera                `json:"camera,omitempty"`
+	Center     []float64              `json:"center,omitempty"`
+	ColorTheme *ColorTheme            `json:"color-theme,omitempty"`
+	Featuresets map[string]Featureset `json:"featuresets,omitempty"`
+	Fog        *Fog                   `json:"fog,omitempty"`
+	Fragment   *bool                  `json:"fragment,omitempty"`
+	Glyphs     string                 `json:"glyphs,omitempty"`
+	Iconsets   map[string]Iconset     `json:"iconsets,omitempty"`
+	ID         string                 `json:"id,omitempty"`
+	Imports    []Import               `json:"imports,omitempty"`
+	Layers     []*Layer               `json:"layers"`
+	Light      *Light                 `json:"light,omitempty"`
+	Lights     []Light3D              `json:"lights,omitempty"`
+	Metadata   Metadata               `json:"metadata,omitempty"`
+	Models     map[string]string      `json:"models,omitempty"`
+	Name       string                 `json:"name,omitempty"`
+	Pitch      float64                `json:"pitch,omitempty"`
+	Projection *Projection            `json:"projection,omitempty"`
+	Rain       *Rain                  `json:"rain,omitempty"`
+	Schema     map[string]SchemaOption `json:"schema,omitempty"`
+	Snow       *Snow                  `json:"snow,omitempty"`
+	Sources    Sources                `json:"sources"`
+	Sprite     string                 `json:"sprite,omitempty"`
+	Terrain    *Terrain               `json:"terrain,omitempty"`
+	Transition *Transition            `json:"transition,omitempty"`
+	Version    int                    `json:"version"`
+	Zoom       float64                `json:"zoom,omitempty"`
+}
+
+type Featureset struct {
+	Metadata  Metadata    `json:"metadata,omitempty"`
+	Selectors []Selector  `json:"selectors,omitempty"`
+}
+
+type Selector struct {
+	Layer             string                 `json:"layer"`
+	FeatureNamespace  string                 `json:"featureNamespace,omitempty"`
+	Properties        map[string]interface{} `json:"properties,omitempty"`
+}
+
+type Iconset struct {
+	Type   string `json:"type,omitempty"`
+	URL    string `json:"url,omitempty"`
+	Source string `json:"source,omitempty"`
+}
+
+type Rain struct {
+	CenterThinning  *float64   `json:"center-thinning,omitempty"`
+	Color           *ColorType `json:"color,omitempty"`
+	Density         *float64   `json:"density,omitempty"`
+	Direction       *float64   `json:"direction,omitempty"`
+	DistortionStrength *float64 `json:"distortion-strength,omitempty"`
+	DropletSize     *float64   `json:"droplet-size,omitempty"`
+	Intensity       *float64   `json:"intensity,omitempty"`
+	Opacity         *float64   `json:"opacity,omitempty"`
+	Vignette        *float64   `json:"vignette,omitempty"`
+	VignetteColor   *ColorType `json:"vignette-color,omitempty"`
+}
+
+type Snow struct {
+	CenterThinning *float64   `json:"center-thinning,omitempty"`
+	Color          *ColorType `json:"color,omitempty"`
+	Density        *float64   `json:"density,omitempty"`
+	Direction      *float64   `json:"direction,omitempty"`
+	FlakeSize      *float64   `json:"flake-size,omitempty"`
+	Intensity      *float64   `json:"intensity,omitempty"`
+	Opacity        *float64   `json:"opacity,omitempty"`
+	Vignette       *float64   `json:"vignette,omitempty"`
+	VignetteColor  *ColorType `json:"vignette-color,omitempty"`
 }
 
 func Parse(reader io.Reader) (*MapboxGLStyle, error) {

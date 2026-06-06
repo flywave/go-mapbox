@@ -8,6 +8,7 @@ import (
 type colorStop struct {
 	ZoomLevel ZoomLevel
 	Color     color.Color
+	rawColor  string
 }
 
 func (c *colorStop) UnmarshalJSON(data []byte) error {
@@ -27,8 +28,13 @@ func (c *colorStop) UnmarshalJSON(data []byte) error {
 	}
 	c.ZoomLevel = zoomLevel
 	c.Color = stopColor
+	c.rawColor = colorStr
 
 	return nil
+}
+
+func (c *colorStop) MarshalJSON() ([]byte, error) {
+	return json.Marshal([2]interface{}{float64(c.ZoomLevel), c.rawColor})
 }
 
 type ColorStopsType struct {

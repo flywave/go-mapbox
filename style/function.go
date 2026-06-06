@@ -2,17 +2,6 @@ package style
 
 import "math"
 
-type functionTypeName string
-
-const (
-	functionTypeNameIdentity    functionTypeName = "identity"
-	functionTypeNameExponential functionTypeName = "exponential"
-	functionTypeNameInterval    functionTypeName = "interval"
-	functionTypeNameCategory    functionTypeName = "categorical"
-)
-
-const defaultFunctionTypeName = functionTypeNameIdentity
-
 func getValueThroughStop(this, next, progressThroughStop float64) float64 {
 	diffBetweenValues := next - this
 	xProgressThrough := math.Floor(diffBetweenValues * progressThroughStop)
