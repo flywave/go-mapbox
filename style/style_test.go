@@ -1975,3 +1975,233 @@ func TestLayerMarshalEmptyID(t *testing.T) {
 	}
 }
 
+// ─── Flywave Extensions ────────────────────────────────────────────────────
+
+func TestStyleFlywaveExtensionsRoundTrip(t *testing.T) {
+	raw := `{
+		"version":8,
+		"sources":{},
+		"layers":[],
+		"flywave:clearColor":"#1a1a2e",
+		"flywave:clearAlpha":1,
+		"flywave:enableShadows":true,
+		"flywave:toneMappingExposure":1.2,
+		"flywave:definitions":{"roadColor":"#ff0000"},
+		"flywave:postEffects":{"bloom":{"enabled":true,"strength":0.5}},
+		"flywave:textStyles":[{"name":"default","size":14}],
+		"flywave:fontCatalogs":[{"url":"fonts.pbf","name":"Open Sans"}],
+		"flywave:imageTextures":[{"name":"icon","image":"marker"}],
+		"flywave:poiTables":[{"name":"pois","url":"pois.json","useAltNamesForKey":false}],
+		"flywave:priorities":[{"group":"tilezen","category":"road"}],
+		"flywave:labelPriorities":["city","town"]
+	}`
+	var s Style
+	if err := json.Unmarshal([]byte(raw), &s); err != nil {
+		t.Fatal(err)
+	}
+	if s.ClearColor == nil || *s.ClearColor != "#1a1a2e" {
+		t.Fatalf("ClearColor = %v", s.ClearColor)
+	}
+	if s.ClearAlpha == nil || *s.ClearAlpha != 1 {
+		t.Fatalf("ClearAlpha = %d", *s.ClearAlpha)
+	}
+	if s.EnableShadows == nil || !*s.EnableShadows {
+		t.Fatal("EnableShadows should be true")
+	}
+	if s.ToneMappingExposure == nil || *s.ToneMappingExposure != 1.2 {
+		t.Fatalf("ToneMappingExposure = %v", *s.ToneMappingExposure)
+	}
+	if s.FlywaveDefinitions == nil {
+		t.Fatal("expected Definitions")
+	}
+	if (*s.FlywaveDefinitions)["roadColor"] != "#ff0000" {
+		t.Fatalf("definitions.roadColor = %v", (*s.FlywaveDefinitions)["roadColor"])
+	}
+	if s.FlywavePostEffects == nil || s.FlywavePostEffects.Bloom == nil || !s.FlywavePostEffects.Bloom.Enabled {
+		t.Fatal("expected bloom post effect")
+	}
+	if len(s.FlywaveTextStyles) != 1 || s.FlywaveTextStyles[0].Name == nil || *s.FlywaveTextStyles[0].Name != "default" {
+		t.Fatal("textStyles mismatch")
+	}
+	if len(s.FlywaveFontCatalogs) != 1 || s.FlywaveFontCatalogs[0].Name != "Open Sans" {
+		t.Fatal("fontCatalogs mismatch")
+	}
+	if len(s.FlywaveImageTextures) != 1 || s.FlywaveImageTextures[0].Name != "icon" {
+		t.Fatal("imageTextures mismatch")
+	}
+	if len(s.FlywavePoiTables) != 1 || s.FlywavePoiTables[0].Name != "pois" {
+		t.Fatal("poiTables mismatch")
+	}
+	if len(s.FlywavePriorities) != 1 || s.FlywavePriorities[0].Group != "tilezen" {
+		t.Fatal("priorities mismatch")
+	}
+	if len(s.FlywaveLabelPriorities) != 2 || s.FlywaveLabelPriorities[0] != "city" {
+		t.Fatal("labelPriorities mismatch")
+	}
+
+	out, err := json.Marshal(&s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !jsonEqual(string(out), raw) {
+		t.Fatalf("round trip:\n  in:  %s\n  out: %s", raw, string(out))
+	}
+}
+
+func TestStyleFlywaveOmitEmpty(t *testing.T) {
+	s := Style{Version: 8, Sources: Sources{}, Layers: []*Layer{}}
+	out, err := json.Marshal(&s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(out), "flywave") {
+		t.Fatal("flywave should be omitted when empty")
+	}
+}
+
+func TestLayerFlywaveExtensionsRoundTrip(t *testing.T) {
+	raw := `{
+		"id":"building-test",
+		"type":"fill-extrusion",
+		"source":"composite",
+		"source-layer":"building",
+		"flywave:technique":"extruded-polygon",
+		"flywave:styleSet":"tilezen",
+		"flywave:category":"building",
+		"flywave:renderOrder":10,
+		"flywave:animateExtrusion":true,
+		"flywave:boundaryWalls":true,
+		"flywave:footprint":false,
+		"flywave:imageTexturePrefix":"night_",
+		"flywave:imageTexturePostfix":"_dark"
+	}`
+	var l Layer
+	if err := json.Unmarshal([]byte(raw), &l); err != nil {
+		t.Fatal(err)
+	}
+	if l.FlywaveTechnique == nil || *l.FlywaveTechnique != "extruded-polygon" {
+		t.Fatalf("Technique = %v", l.FlywaveTechnique)
+	}
+	if l.FlywaveStyleSet == nil || *l.FlywaveStyleSet != "tilezen" {
+		t.Fatalf("StyleSet = %v", l.FlywaveStyleSet)
+	}
+	if l.FlywaveCategory == nil || *l.FlywaveCategory != "building" {
+		t.Fatalf("Category = %v", l.FlywaveCategory)
+	}
+	if l.FlywaveRenderOrder == nil || *l.FlywaveRenderOrder != 10 {
+		t.Fatalf("RenderOrder = %d", *l.FlywaveRenderOrder)
+	}
+	if l.FlywaveAnimateExtrusion == nil || !*l.FlywaveAnimateExtrusion {
+		t.Fatal("AnimateExtrusion should be true")
+	}
+	if l.FlywaveBoundaryWalls == nil || !*l.FlywaveBoundaryWalls {
+		t.Fatal("BoundaryWalls should be true")
+	}
+	if l.FlywaveFootprint == nil || *l.FlywaveFootprint {
+		t.Fatal("Footprint should be false")
+	}
+	if l.FlywaveImageTexturePrefix == nil || *l.FlywaveImageTexturePrefix != "night_" {
+		t.Fatalf("ImageTexturePrefix = %v", l.FlywaveImageTexturePrefix)
+	}
+	if l.FlywaveImageTexturePostfix == nil || *l.FlywaveImageTexturePostfix != "_dark" {
+		t.Fatalf("ImageTexturePostfix = %v", l.FlywaveImageTexturePostfix)
+	}
+
+	out, err := json.Marshal(&l)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !jsonEqual(string(out), raw) {
+		t.Fatalf("round trip:\n  in:  %s\n  out: %s", raw, string(out))
+	}
+}
+
+func TestLayerFlywaveOmitEmpty(t *testing.T) {
+	l := Layer{ID: "test", Type: LayerTypeFill}
+	out, err := json.Marshal(&l)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(out), "flywave") {
+		t.Fatal("flywave should be omitted when empty")
+	}
+}
+
+func TestLayerFlywaveShaderParams(t *testing.T) {
+	raw := `{
+		"id":"shader-layer",
+		"type":"line",
+		"flywave:technique":"shader",
+		"flywave:shaderParams":{"vertexShader":"...","fragmentShader":"..."}
+	}`
+	var l Layer
+	if err := json.Unmarshal([]byte(raw), &l); err != nil {
+		t.Fatal(err)
+	}
+	if l.FlywaveShaderParams == nil {
+		t.Fatal("expected ShaderParams")
+	}
+	if l.FlywaveShaderParams["vertexShader"] != "..." {
+		t.Fatalf("vertexShader = %v", l.FlywaveShaderParams["vertexShader"])
+	}
+}
+
+func TestStyleWithFlywaveAndStandardFields(t *testing.T) {
+	raw := `{
+		"version":8,
+		"name":"mixed-style",
+		"sources":{"streets":{"type":"vector","url":"mapbox://mapbox.streets"}},
+		"layers":[
+			{
+				"id":"water",
+				"type":"fill",
+				"source":"streets",
+				"source-layer":"water",
+				"paint":{"fill-color":"#00ffff"},
+				"flywave:technique":"fill",
+				"flywave:styleSet":"tilezen"
+			}
+		],
+		"flywave:definitions":{"waterColor":"#00ffff"},
+		"flywave:enableShadows":true
+	}`
+	var s Style
+	if err := json.Unmarshal([]byte(raw), &s); err != nil {
+		t.Fatal(err)
+	}
+	if s.Name != "mixed-style" {
+		t.Fatalf("Name = %q", s.Name)
+	}
+	if s.EnableShadows == nil || !*s.EnableShadows {
+		t.Fatal("expected enableShadows")
+	}
+	if len(s.Layers) != 1 || s.Layers[0].FlywaveTechnique == nil || *s.Layers[0].FlywaveTechnique != "fill" {
+		t.Fatal("expected layer technique fill")
+	}
+	if s.Layers[0].Paint == nil || s.Layers[0].Paint.FillColor == nil {
+		t.Fatal("standard paint should still work alongside flywave extensions")
+	}
+
+	out, err := json.Marshal(&s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !jsonEqual(string(out), raw) {
+		t.Fatalf("round trip:\n  in:  %s\n  out: %s", raw, string(out))
+	}
+}
+
+func TestStyleUnmarshalWithoutFlywave(t *testing.T) {
+	raw := `{"version":8,"sources":{},"layers":[{"id":"bg","type":"background"}]}`
+	var s Style
+	if err := json.Unmarshal([]byte(raw), &s); err != nil {
+		t.Fatal(err)
+	}
+	if s.EnableShadows != nil {
+		t.Fatal("EnableShadows should be nil when not present")
+	}
+	if s.Layers[0].FlywaveTechnique != nil {
+		t.Fatal("Layer flywave:technique should be nil when not present")
+	}
+}
+

@@ -25,18 +25,28 @@ const (
 )
 
 type Layer struct {
-	Appearances []Appearance      `json:"appearances,omitempty"`
-	Filter      *FilterContainer `json:"filter,omitempty"`
-	ID          string           `json:"id"`
-	Layout      *Layout          `json:"layout,omitempty"`
-	MaxZoom     *float64         `json:"maxzoom,omitempty"`
-	Metadata    Metadata         `json:"metadata,omitempty"`
-	MinZoom     *float64         `json:"minzoom,omitempty"`
-	Paint       *Paint           `json:"paint,omitempty"`
-	Slot        *string          `json:"slot,omitempty"`
-	Source      *string          `json:"source,omitempty"`
-	SourceLayer *string          `json:"source-layer,omitempty"`
-	Type        LayerType        `json:"type"`
+	Appearances         []Appearance           `json:"appearances,omitempty"`
+	Filter              *FilterContainer       `json:"filter,omitempty"`
+	FlywaveTechnique    *string                `json:"flywave:technique,omitempty"`
+	FlywaveStyleSet     *string                `json:"flywave:styleSet,omitempty"`
+	FlywaveCategory     *string                `json:"flywave:category,omitempty"`
+	FlywaveRenderOrder  *int                   `json:"flywave:renderOrder,omitempty"`
+	FlywaveAnimateExtrusion *bool              `json:"flywave:animateExtrusion,omitempty"`
+	FlywaveBoundaryWalls    *bool              `json:"flywave:boundaryWalls,omitempty"`
+	FlywaveFootprint        *bool              `json:"flywave:footprint,omitempty"`
+	FlywaveShaderParams     map[string]interface{} `json:"flywave:shaderParams,omitempty"`
+	FlywaveImageTexturePrefix    *string       `json:"flywave:imageTexturePrefix,omitempty"`
+	FlywaveImageTexturePostfix   *string       `json:"flywave:imageTexturePostfix,omitempty"`
+	ID                          string         `json:"id"`
+	Layout                      *Layout        `json:"layout,omitempty"`
+	MaxZoom                     *float64       `json:"maxzoom,omitempty"`
+	Metadata                    Metadata       `json:"metadata,omitempty"`
+	MinZoom                     *float64       `json:"minzoom,omitempty"`
+	Paint                       *Paint         `json:"paint,omitempty"`
+	Slot                        *string        `json:"slot,omitempty"`
+	Source                      *string        `json:"source,omitempty"`
+	SourceLayer                 *string        `json:"source-layer,omitempty"`
+	Type                        LayerType      `json:"type"`
 }
 
 func validLayerType(t LayerType) bool {
